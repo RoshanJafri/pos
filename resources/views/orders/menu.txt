@@ -1,0 +1,118 @@
+Parathas and naan
+chapati 200
+Paratha 300
+Qeema Paratha 800
+Aalu Paratha 600
+Daal Paratha 600
+Cheese Paratha 800
+Sweet Paratha 600
+
+Salad/Raita
+Raita 150
+Salaad 150
+
+
+Curries
+Nihari 1800
+Haleem 1800
+Paaya 1800
+
+
+Qeema 
+Aalu Qeema 1800
+Aalu Qeema with Grean Peas 1800
+Chana Daal Qeema 1800
+Dum ka Qeema 2000
+
+
+Qorma
+Chicken Qorma 1500
+Beef Qorma 1800
+Mutton Qorma 2600
+
+Karahi
+Chicken Karahi 1500
+Beef Karahi 1800
+Mutton Karahi 2600
+Fish Karahi 2400
+
+
+Chicken
+Chicken Bun Kebab 700
+Chicken Bun Kebab with Egg 800
+Chicken Roll Paratha 900
+Karachi Chicken Roll Paratha  1100
+Chicken Shami Kebab 700
+Chicken Tikka 1200
+Chicken Tikka Boti 1400
+
+
+Beef
+Beef Bun Kebab 800
+Beef Bun Kebab with Egg 900
+Beef Roll Paratha 1000
+Karachi Beef Roll Paratha 1200
+Beef Shami Kebab 800
+Beef Tikka Boti 1600
+
+Biryani
+Chicken Biryani 1600
+Beef Biryani 2000
+Mutton Biryani 2600
+Fish Biryani 2400
+
+
+Biryani and Pulao Saawan
+Chicken & Biryani Saawan 06 Pts. 8640
+Chicken & Biryani Saawan 08 Pts. 11520
+Beef Biryani Saawan 06 Pts. 10800
+Beef Biryani Saawan 08 Pts. 14400
+Mutton Biryani Saawan 06 Pts. 14000
+Mutton Biryani Saawan 08 Pts. 18700
+Chicken Pulao Saawan 06 Pts. 9720
+Chicken Pulao Saawan 08 Pts. 12960
+Beef Pualo Saawan 06 Pts. 11880
+Beef Pualo Saawan 08 Pts. 15840
+Mutton Pualo Saawan 08 Pts. 15000
+Mutton Pualo Saawan 08 Pts. 20000
+
+
+Specials
+Tehri 1200
+Chana Pulao 1200
+Matar Pulao 1200
+Veg Biryani 1200
+Chicken Pulao 1800
+Beef Pulao 2200
+Mutton Pulao 2800
+Beef Aalu Gosht 2000
+Mutton Aalu Gosht 2600
+Chicken Handi 1600
+Puri Set 1500
+
+
+Beverages 
+Coca cola 300
+Pepsi 300
+7up 300
+Sprite 300
+Fanta 300
+Lassi (salted) 350
+Lassi (sweet) 400
+Lassi (mint) 400
+Karak Chai 300
+Kashmiri Chai 400
+Water 500ml 100
+Water 1000ml 200
+
+
+Sweets
+Kheer 300
+Zarda 300
+Suji Ka Halwa 300
+
+
+Snacks
+Chana Chaat 500
+Dahi Baray 800
+Gol Gappay 05pcs 500

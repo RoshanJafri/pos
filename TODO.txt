@@ -1,0 +1,19 @@
+1. remove name error - done
+2. Total sales of the day 
+3. Payment method - done
+4. Discount should appear on bill - done
+5. KOT - done
+6. Increase font size - done
+7. change print time to AM Payment - done
+8. edit employees and menu items - done
+9. bill should show qty * price = total for each order - done
+10. paginations -  done
+11. Try to store order details as the current price and not the previous price
+12. Order delete option
+
+payment method on office receipt
+
+
+check what happens to item in order index if item deleted
+
+

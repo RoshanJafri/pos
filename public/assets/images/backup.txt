@@ -1,0 +1,188 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Order;
+use App\Models\Category;
+use App\Models\Employee;
+use Mike42\Escpos\Printer;
+use Illuminate\Http\Request;
+use Mike42\Escpos\EscposImage;
+use Mike42\Escpos\CapabilityProfile;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+
+class OrderController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+
+    public function index()
+    {
+        $orders = Order::with(['details.item', 'employee'])
+        ->orderBy('created_at', 'desc')
+        ->paginate(25);
+        return view('orders.index', [
+            'orders' => $orders,
+        ]);
+
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        // $categories = cache()->remember('categories', 3600, function () {
+        //     return Category::with(['subcategories.items'])->get();
+        // });
+        $categories = Category::with(['subCategories.items'])->get();
+
+        $employees = cache()->remember('employees', 3600, function () {
+            return Employee::select('id', 'name')->orderByDesc('name')->get();
+        });
+
+
+        return view('orders.create', [
+            'categories' => $categories,
+            'employees' => $employees,
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+
+        // Save main order
+        $order = new Order();
+        $order->employee_id = $request->employee_id;
+        $order->table_no = $request->table_no;
+        $order->subtotal = $request->subtotal;
+        $order->tax = $request->tax;
+        $order->discountPercentage = $request->discountPercentage;
+        $order->payable = $request->payable;
+        $order->note = $request->note;
+        $order->order_type = $request->order_type;
+        $order->save();
+
+        // Save order details
+        foreach ($request->items as $item) {
+            $order->details()->create([
+                'item_id' => $item['id'],
+                'quantity' => $item['qty'],
+                'finalCost' => $item['cost'],
+                'originalCost' => $item['originalCost'],
+            ]);
+        }
+
+        
+        // Start the printer
+        $connector = new WindowsPrintConnector("XPrinter XP-80T");
+        $printer = new Printer($connector);
+        $profile = CapabilityProfile::load('XP-80T');
+
+        // Logo (optional - if available, path to image)
+        try {
+            $logo = EscposImage::load('assets/images/print-logo.png', false);
+            $printer->setStyles([
+                'align' => Printer::ALIGN_CENTER,
+                'text-size' => [2, 2]
+            ]);
+            $printer->bitImage($logo);
+            $printer->feed(2);
+        } catch (Exception $e) {
+            // If logo fails, just continue without it
+        }
+
+        // Print date and time
+        $printer->setStyles([
+            'align' => Printer::ALIGN_CENTER,
+            'text-size' => [1, 1]
+        ]);
+        $printer->text(date('jS \o\f M, Y H:i:s') . "\n");
+
+        // Print Restaurant Name and Address
+        $printer->setStyles([
+            'align' => Printer::ALIGN_CENTER,
+            'text-size' => [1, 1]
+        ]);
+        $printer->text("Kafe Karachi\n");
+        $printer->text("4 Inner Vanderwert Place Dehiwala\n");
+        $printer->text("Phone: 074-2833278\n");
+
+        // Print Order ID and Payment Method
+        $printer->text("Order ID: #" . $order->id . "\n");
+        $printer->text("Payment Method: " . $request->payment_method . "\n");
+        $printer->feed(1);
+
+        // Print items
+        $printer->setStyles([
+            'align' => Printer::ALIGN_LEFT,
+            'text-size' => [1, 1]
+        ]);
+        $printer->text("Qty | Name                  | Rs. (Cost)\n");
+        $printer->text("-----------------------------------------\n");
+
+        $total = 0;
+        foreach ($request->items as $item) {
+            $printer->text($item['qty'] . "   | " . str_pad($item['name'], 20) . " | Rs. " . number_format($item['cost'], 2) . "\n");
+            $total += $item['cost'];
+        }
+
+        // Print subtotal, tax, and total
+        $printer->text("-----------------------------------------\n");
+        $printer->text("Subtotal: Rs. " . number_format($order->subtotal, 2) . "\n");
+        $printer->text("Tax: Rs. " . number_format($order->tax, 2) . "\n");
+        $printer->text("Total Payable: Rs. " . number_format($order->payable, 2) . "\n");
+        $printer->feed(1);
+
+        // Thank you message
+        $printer->setStyles([
+            'align' => Printer::ALIGN_CENTER,
+            'text-size' => [1, 1]
+        ]);
+        $printer->text("Thank you for dining with us!\n");
+
+        // Cut the paper
+        $printer->cut();
+
+        // Close the printer
+        $printer->close();
+
+        return redirect()->back()->with('success', 'Order placed successfully!');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+}

@@ -48,9 +48,9 @@ class OrderController extends Controller
         $open_orders = Order::where('status', 1)->get();
 
         return view('orders.create', [
-            'categories'   => $categories,
-            'employees'    => $employees,
-            'open_orders'  => $open_orders,
+            'categories' => $categories,
+            'employees' => $employees,
+            'open_orders' => $open_orders,
         ]);
     }
 
@@ -60,7 +60,7 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'employee_id' => 'required',
+            'employee_id' => 'required|numeric',
             'table_no' => 'nullable',
             'subtotal' => 'required|numeric|min:0',
             'discountPercentage' => 'nullable|numeric|min:0|max:100',
@@ -95,7 +95,8 @@ class OrderController extends Controller
         // $this->printKOT($order->id, $order->employee->name, $request->items, $order->table_no);
         // return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
 
-        return $this->printKOT($order->id, $order->employee->name, $request->items, [], $order->table_no);
+        $this->printKOT($order->id, $order->created_at, $order->employee->name, $request->items, [], $order->table_no);
+        return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
     }
 
     /**
@@ -108,7 +109,8 @@ class OrderController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     */ public function edit(string $id)
+     */
+    public function edit(string $id)
     {
         $categories = Category::with(['subCategories.items'])->get();
 
@@ -142,15 +144,20 @@ class OrderController extends Controller
 
         // Save main order
         $order = Order::findOrFail($id);
+
         $oldItems = $order->details()->get();
 
+        $incomingIds = collect($request->items)->pluck('id')->toArray();
 
+        // Delete removed items
+        $order->details()->whereNotIn('item_id', $incomingIds)->delete();
+
+        // Add or update items
         foreach ($request->items as $item) {
             $orderDetail = $order->details()->where('item_id', $item['id'])->first();
+
             if ($orderDetail) {
-
-
-                // Update existing order detail
+                // Update existing
                 $orderDetail->update([
                     'name' => $item['name'],
                     'quantity' => $item['qty'],
@@ -158,7 +165,7 @@ class OrderController extends Controller
                     'originalCost' => $item['originalCost'],
                 ]);
             } else {
-                // Create new order detail if it doesn't exist
+                // Add new
                 $order->details()->create([
                     'item_id' => $item['id'],
                     'name' => $item['name'],
@@ -168,6 +175,32 @@ class OrderController extends Controller
                 ]);
             }
         }
+
+
+
+        // foreach ($request->items as $item) {
+        //     $orderDetail = $order->details()->where('item_id', $item['id'])->first();
+        //     if ($orderDetail) {
+
+
+        //         // Update existing order detail
+        //         $orderDetail->update([
+        //             'name' => $item['name'],
+        //             'quantity' => $item['qty'],
+        //             'finalCost' => $item['cost'],
+        //             'originalCost' => $item['originalCost'],
+        //         ]);
+        //     } else {
+        //         // Create new order detail if it doesn't exist
+        //         $order->details()->create([
+        //             'item_id' => $item['id'],
+        //             'name' => $item['name'],
+        //             'quantity' => $item['qty'],
+        //             'finalCost' => $item['cost'],
+        //             'originalCost' => $item['originalCost'],
+        //         ]);
+        //     }
+        // }
 
 
         $order->employee_id = $request->employee_id;
@@ -204,165 +237,238 @@ class OrderController extends Controller
                 ]);
             }
         }
-        return $this->printKOT($order->id, $order->employee->name, $request->items, $oldItems, $order->table_no);
-
-        // $this->printKOT($order->id, $order->employee->name, $request->items, $order->table_no);
-        // return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
+        if ($request->input('print_receipt')) {
+            $this->printKOT($order->id, $order->updated_at, $order->employee->name, $request->items, $oldItems, $order->table_no);
+        }
+        return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
     }
 
-    private function printKOT($order_id, $handler, $items, $oldItems, $table_no)
+    private function printKOT($order_id, $order_time, $handler, $items, $oldItems, $table_no)
     {
+
+
+        $connector = new WindowsPrintConnector('XP-80D');
+        $printer = new Printer($connector);
         $order = Order::findOrFail($order_id);
-        $content = '';
-        $content .= "KITCHEN ORDER\n";
-        $content .= "Order #: " . $order_id . "\n";
-        $content .= "Table #: " . $table_no . "\n\n";
-        $content .= "Note: " . $order->note . "\n\n";
-        $content .= "Server: " . ($handler ?? 'N/A') . "\n";
-        $content .= str_repeat("-", 32) . "\n";
+        $printer->setTextSize(2, 2); // Max text size
+        $printer->setEmphasis(true); // Bold
 
-        $content .= "========UPDATED ORDER DETAILS=======\n";
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->text("KITCHEN ORDER\n\n");
 
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $printer->text("KOT Printed #: " . date('H:i A, d-M-Y', strtotime($order_time)) . "\n");
+        $printer->text("Order #: " . $order_id . "\n");
+        $printer->text("Table #: " . $table_no . "\n\n");
+
+        $printer->text("Note: " . $order->note . "\n\n");
+
+        $printer->text("Server: " . ($handler ?? 'N/A') . "\n");
+
+        $printer->text(str_repeat("-", 23) . "\n");
+
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->text("UPDATED ORDER DETAILS\n");
+
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
         foreach ($items as $item) {
-            $content .= str_pad($item['qty'] . "x", 4) . $item['name'] . "\n";
+            $line = str_pad($item['qty'] . "x", 4) . $item['name'];
+
+            $printer->feed(); // Feeds one line (empty)
+            $printer->text($line . "\n");
         }
 
-        if (count($oldItems) > 0) {
-            $content .= "=========OLD ORDER DETAILS=========\n";
-            $content .= "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
+        // if (count($oldItems) > 0) {
+        //     $printer->setJustification(Printer::JUSTIFY_CENTER);
+        //     $printer->text("OLD ORDER DETAILS\n");
+        //     $printer->text(str_repeat("x", 33) . "\n");
 
-            foreach ($oldItems as $item) {
-                $content .= str_pad($item['quantity'] . "x", 4) . $item['name'] . "\n";
-            }
-        }
+        //     $printer->setJustification(Printer::JUSTIFY_LEFT);
+        //     foreach ($oldItems as $item) {
+        //         $line = str_pad($item['quantity'] . "x", 4) . $item['name'];
 
-        $content .= "\n\n\n";
+        //     $printer->feed(); // Feeds one line (empty)
+        //         $printer->text($line . "\n");
+        //     }
+        // }
 
-        // Return as text file download
-        return response($content)
-            ->header('Content-Type', 'text/plain')
-            ->header('Content-Disposition', 'attachment; filename="kitchen_order.txt"');
+        $printer->feed(2); // feed 3 lines
+        $printer->cut(); // cut the paper
+        $printer->close();
     }
     public function officeReceipt(Request $request, $order)
     {
+
         $paymentMethod = $request->input('payment_method');
         $order = Order::with('employee', 'details.item')->findOrFail($order);
         $order->status = 1;
         $order->payment_method = $paymentMethod;
         $order->save();
 
-        $printerOutput = '';
+        if ($request->input('print_receipt')) {
+            $connector = new WindowsPrintConnector('XP-80D');
+            $printer = new Printer($connector);
 
-        // 🗓️ Header Info
-        $printerOutput .= "Print Date and time: " . date('Y-m-d h:i A') . "\n\n";
-        $printerOutput .= "Order Date and time: " . date('Y-m-d h:i A', strtotime($order->created_at)) . "\n\n";
+            $printer->text("Print Date and time: " . date('Y-m-d h:i A') . "\n");
+            $printer->text("Order Date and time: " . date('Y-m-d h:i A', strtotime($order->created_at)) . "\n\n");
 
-        $printerOutput .= "***RESTAURANT COPY***\n";
-        $printerOutput .= "Server/Handler: " . $order->employee->name . "\n";
-        $printerOutput .= "Table No: " . $order->table_no . "\n\n";
+            // Restaurant copy header
+            $printer->setEmphasis(true);
+            $printer->text("***RESTAURANT COPY***\n");
+            $printer->setEmphasis(false);
 
-        // 🏢 Header
-        $printerOutput .= "========== KAFE KARACHI ==========\n";
-        $printerOutput .= "4 Inner Vanderwert Pl, Dehiwala\n";
-        $printerOutput .= "074-2833278\n\n";
+            $printer->text("Server/Handler: " . $order->employee->name . "\n");
+            $printer->text("Table No: " . $order->table_no . "\n\n");
 
-        // 📄 Order Info
-        $printerOutput .= "Order # " . $order->id . "\n";
-        $printerOutput .= "Payment: " . $paymentMethod . "\n";
-        $printerOutput .= "------------------------------------------\n";
+            // 🏢 Address block
+            $printer->text("========== KAFE KARACHI ==========\n");
+            $printer->text("4 Inner Vanderwert Pl, Dehiwala\n");
+            $printer->text("074-2833278\n\n");
 
-        // 🛒 Items Header
-        $printerOutput .= str_pad("Qty", 5) . str_pad("Item", 22) . str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n";
-        $printerOutput .= "------------------------------------------\n";
+            // 📄 Order info
+            $printer->text("Order # " . $order->id . "\n");
+            $printer->text("Payment: " . $paymentMethod . "\n");
+            $printer->text("Note: " . $order->note . "\n\n");
 
-        // 🛍️ Items
-        $total = 0;
-        foreach ($order->details as $item) {
-            $name = mb_strimwidth($item->item->name, 0, 20, "...");
-            $line = str_pad($item->quantity, 5) .
-                str_pad($name, 22) .
-                str_pad("Rs. " . number_format($item->finalCost * $item->quantity, 2), 10, ' ', STR_PAD_LEFT);
-            $printerOutput .= $line . "\n";
-            $total += $item->finalCost;
+            // Separator line
+            $printer->text(str_repeat("-", 42) . "\n");
+
+            // Header columns
+            $printer->text(
+                str_pad("Qty", 5) .
+                str_pad("Item", 17) .
+                str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
+                str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
+            );
+            $printer->text(str_repeat("-", 42) . "\n");
+
+            // Items
+            foreach ($order->details as $item) {
+                $name = strlen($item->item->name) > 15
+                    ? substr($item->item->name, 0, 12) . '...'
+                    : $item->item->name;
+
+                $line = str_pad($item->quantity, 5) .
+                    str_pad($name, 17) .
+                    str_pad(number_format($item->originalCost, 2), 10, ' ', STR_PAD_LEFT) .
+                    str_pad(number_format($item->finalCost * $item->quantity, 2), 10, ' ', STR_PAD_LEFT);
+
+                $printer->text($line . "\n");
+            }
+
+            // 💵 Totals
+            $printer->text(str_repeat("-", 42) . "\n");
+            $printer->text(str_pad("Subtotal: ", 30, ' ', STR_PAD_LEFT) . "Rs. " . number_format($order->subtotal, 2) . "\n");
+            $printer->text(str_pad("Tax: ", 30, ' ', STR_PAD_LEFT) . "Rs. " . number_format($order->tax, 2) . "\n");
+
+            if ($order->discountPercentage > 0) {
+                $printer->text(str_pad("Discount: ", 30, ' ', STR_PAD_LEFT) . number_format($order->discountPercentage, 2) . "%\n");
+            }
+
+            $printer->text(str_repeat("=", 42) . "\n");
+            $printer->setEmphasis(true);
+            $printer->text(str_pad("TOTAL: ", 30, ' ', STR_PAD_LEFT) . "Rs. " . number_format($order->payable, 2) . "\n");
+            $printer->setEmphasis(false);
+            $printer->text(str_repeat("=", 42) . "\n\n");
+
+            $printer->feed(3);
+            $printer->cut();
+            $printer->close();
         }
 
-        // 💵 Totals
-        $printerOutput .= "------------------------------------------\n";
-        $printerOutput .= str_pad("Subtotal: ", 30, ' ', STR_PAD_LEFT) . "Rs. " . number_format($order->subtotal, 2) . "\n";
-        $printerOutput .= str_pad("Tax: ", 30, ' ', STR_PAD_LEFT) . "Rs. " . number_format($order->tax, 2) . "\n";
-        if ($order->discountPercentage > 0) {
-            $printerOutput .= str_pad("Discount: ", 30, ' ', STR_PAD_LEFT) . number_format($order->discountPercentage, 2) . "%\n";
-        }
 
-        $printerOutput .= str_repeat("=", 42) . "\n";
-        $printerOutput .= str_pad("TOTAL: ", 30, ' ', STR_PAD_LEFT) . "Rs. " . number_format($order->payable, 2) . "\n";
-        $printerOutput .= str_repeat("=", 42) . "\n\n";
 
-        $printerOutput = str_replace("\n", "\r\n", $printerOutput);
-        return response()->streamDownload(function () use ($printerOutput) {
-            echo $printerOutput;
-        }, 'office-receipt.txt', [
-            'Content-Type' => 'text/plain; charset=UTF-8',
-            'Cache-Control' => 'no-store, no-cache',
-        ]);
     }
 
-    public function clientReceipt($order, $printerName = 'XP-80C')
+    public function clientReceipt($order, $printerName = 'XP-80D')
     {
 
         $order = Order::findOrFail($order);
 
-        $lines = [];
+        try {
+            $connector = new WindowsPrintConnector('XP-80D');
+            $printer = new Printer($connector);
 
-        // 🗓️ Header Info
-        $lines[] = "Date: " . date('Y-m-d h:i A') . "\n";
+            $printer->setTextSize(1, 1);
+            $printer->text("Date: " . date('Y-m-d h:i A') . "\n\n");
 
-        // 🏢 Restaurant Info
-        $lines[] = str_pad("KAFE KARACHI", 42, ' ', STR_PAD_BOTH);
-        $lines[] = str_pad("4 Inner Vanderwert Pl, Dehiwala", 42, ' ', STR_PAD_BOTH);
-        $lines[] = str_pad("074-2833278", 42, ' ', STR_PAD_BOTH);
-        $lines[] = "\n";
+            // Restaurant name big, bold, centered
+            $printer->setTextSize(2, 2);
+            $printer->setEmphasis(true);
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->text("KAFE KARACHI\n");
+            $printer->setEmphasis(false);
+            $printer->setTextSize(1, 1);
 
-        // 📄 Order Info
-        $lines[] = "Order #" . $order->id;
-        $lines[] = str_repeat("-", 42);
-        $lines[] = str_pad("Qty", 5) . str_pad("Item", 22) . str_pad("Price", 10, ' ', STR_PAD_LEFT);
-        $lines[] = str_repeat("-", 42);
+            // Address & phone centered, normal text
+            $printer->text("4 Inner Vanderwert Pl, Dehiwala\n");
+            $printer->text("074-2833278\n\n");
 
-        $total = 0;
-        foreach ($order->details as $item) {
-            $name = mb_strimwidth($item->item->name, 0, 20, "...");
-            $line = str_pad($item->quantity, 5) .
-                str_pad($name, 22) .
-                str_pad("Rs. " . number_format($item->finalCost * $item->quantity, 2), 10, ' ', STR_PAD_LEFT);
-            $lines[] = $line;
-            $total += $item->finalCost;
+            // Order info, left aligned
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            $printer->text("Order #" . $order->id . "\n");
+            $printer->text("Note: " . $order->note . "\n\n");
+            $printer->text(str_repeat("-", 42) . "\n");
+
+            // Header columns
+            // Header columns
+            $printer->text(
+                str_pad("Qty", 5) .
+                str_pad("Item", 17) .
+                str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
+                str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
+            );
+            $printer->text(str_repeat("-", 42) . "\n");
+
+            // Items
+            foreach ($order->details as $item) {
+                $name = strlen($item->item->name) > 15
+                    ? substr($item->item->name, 0, 12) . '...'
+                    : $item->item->name;
+
+                $line = str_pad($item->quantity, 5) .
+                    str_pad($name, 17) .
+                    str_pad(number_format($item->originalCost, 2), 10, ' ', STR_PAD_LEFT) .
+                    str_pad(number_format($item->finalCost * $item->quantity, 2), 10, ' ', STR_PAD_LEFT);
+
+                $printer->text($line . "\n");
+            }
+
+            // Totals with padding
+            $printer->text(str_repeat("-", 42) . "\n");
+            $printer->text(str_pad("Subtotal: Rs. " . number_format($order->subtotal, 2), 42, ' ', STR_PAD_LEFT) . "\n");
+            $printer->text(str_pad("Tax: Rs. " . number_format($order->tax, 2), 42, ' ', STR_PAD_LEFT) . "\n");
+            if ($order->discountPercentage > 0) {
+                $printer->text(str_pad("Discount: " . number_format($order->discountPercentage, 2) . "%", 42, ' ', STR_PAD_LEFT) . "\n");
+            }
+            $printer->text(str_repeat("=", 42) . "\n");
+
+            // Total bolded
+            $printer->setEmphasis(true);
+            $printer->text(str_pad("Total: Rs. " . number_format($order->payable, 2), 42, ' ', STR_PAD_LEFT) . "\n");
+            $printer->setEmphasis(false);
+            $printer->text(str_repeat("=", 42) . "\n\n");
+
+            // Footer centered, with padding
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->text("Thank you for dining with us!\n");
+            $printer->text("Visit again!\n");
+
+            // Add empty lines for readability / paper feed
+            $printer->feed(4);
+
+            // Cut the paper
+            $printer->cut();
+
+            // Close printer connection
+            $printer->close();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Printing failed: ' . $e->getMessage()
+            ], 500);
         }
-
-        // 💵 Totals
-        $lines[] = str_repeat("-", 42);
-        $lines[] = str_pad("Subtotal: Rs. " . number_format($order->subtotal, 2), 42, ' ', STR_PAD_LEFT);
-        $lines[] = str_pad("Tax: Rs. " . number_format($order->tax, 2), 42, ' ', STR_PAD_LEFT);
-
-        if ($order->discountPercentage > 0) {
-            $lines[] = str_pad("Discount: " . number_format($order->discountPercentage, 2) . "%", 42, ' ', STR_PAD_LEFT);
-        }
-
-        $lines[] = str_repeat("=", 42);
-        $lines[] = str_pad("Total: Rs. " . number_format($order->payable, 2), 42, ' ', STR_PAD_LEFT);
-        $lines[] = str_repeat("=", 42);
-        $lines[] = "";
-
-        // 🙏 Footer
-        $lines[] = str_pad("Thank you for dining with us!", 42, ' ', STR_PAD_BOTH);
-        $lines[] = str_pad("Visit again!", 42, ' ', STR_PAD_BOTH);
-
-        // Generate and return the file
-        $fileContent = implode("\n", $lines);
-        $filename = 'receipt_' . $order->id . '_' . Str::random(5) . '.txt';
-        return response($fileContent)
-            ->header('Content-Type', 'text/plain')
-            ->header('Content-Disposition', 'attachment; filename="receipt.txt"');
+        return response('', 200);
     }
     public function accounts(Request $request)
     {
@@ -395,8 +501,17 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+
+    public function destroy(Request $request, string $id)
     {
-        //
+
+        if ($request->admin_code !== env('DELETE_PASSWORD', '0881')) {
+            return back()->with('error', 'Invalid password');
+        }
+
+        $order = Order::findOrFail($id);
+        $order->delete();
+
+        return redirect()->back();
     }
 }

@@ -1,7 +1,15 @@
 @extends('layouts.app')
 @push('content')
-    <div class="container">
-        <div class="row">
+
+  <div id="password-overlay">
+    <h2>Enter Password</h2>
+    <input type="password" id="page-password" placeholder="Password">
+    <button id="submit-password">Unlock</button>
+
+        <a href="{{url('')}}">Go back</a>
+    <div id="wrong-pass">Wrong password</div>
+  </div>
+    <div class="container locked"><div class="row">
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">
@@ -60,3 +68,28 @@
         </div>
     </div>
 @endpush
+
+@push('scripts')
+    <script src="{{ asset('') }}assets/libs/bootstrap/js/bootstrap-bundle.min.js"></script>
+      <script>
+    const correctPassword = "0881"; // 🔐 Change this to your desired password
+
+    $('#submit-password').click(function () {
+      const input = $('#page-password').val();
+
+      if (input === correctPassword) {
+        $('#password-overlay').fadeOut();
+        $('body').removeClass('locked');
+      } else {
+        $('#wrong-pass').fadeIn();
+      }
+    });
+
+    $('#page-password').on('keypress', function (e) {
+      if (e.which === 13) {
+        $('#submit-password').click();
+      }
+    });
+  </script>
+@endpush
+

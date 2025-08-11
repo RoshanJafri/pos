@@ -45,6 +45,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{route('orders.accounts')}}">Sales</a>
                     </li>
+		
                     <li class="nav-item">
                         <button id="clearCacheBtn" type="button" class="btn btn-outline-secondaryf">
                             Refresh

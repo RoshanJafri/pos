@@ -9,6 +9,18 @@
                 </div>
             @endif
         </div>
+        <div class="mb-3">
+            @if ($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+        </div>
         <div class="row">
             <div class="col-lg-7">
                 <ul class=" shadow border orders-nav nav nav-tabs nav-justified" id="myTab" role="tablist">
@@ -182,19 +194,10 @@
                                 </div>
                                 <hr>
                                 <div class="row">
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-12">
                                     <label for="order_note">Notes:</label>
                                     <textarea class="form-control" name="" id="order_note" cols="30" rows="2"
                                     placeholder="Add any notes..."></textarea>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <label for="paymentInput">Payment Method</label>
-                                        <select class="form-control" name="payment_method" id="paymentInput">
-                                            <option value="cash">Cash</option>
-                                            <option value="credit_card">Credit Card</option>
-                                            <option value="online">Online (Bank Transfer)</option>
-                                            <option value="credit_sale">On credit</option>
-                                        </select>
                                     </div>
                                 </div>
                                 <br>

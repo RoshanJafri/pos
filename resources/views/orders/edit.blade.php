@@ -5,7 +5,7 @@
             @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     {{ session('success') }} &nbsp; &nbsp;
-                    <a href="{{url('')}}" class="">Go Home</a>
+                    <a href="{{ url('') }}" class="">Go Home</a>
                 </div>
             @endif
             @if ($errors->any())
@@ -20,7 +20,7 @@
         </div>
         <div class="row">
             <div class="col-lg-7">
-                <h3>Editing Order # {{$order->id}} <small>(Rs. {{$order->subtotal}})</small></h3>
+                <h3>Editing Order # {{ $order->id }} <small>(Rs. {{ $order->subtotal }})</small></h3>
                 <ul class=" shadow border orders-nav nav nav-tabs nav-justified" id="myTab" role="tablist">
                     @foreach ($categories as $cat)
                         <li class="nav-item">
@@ -34,8 +34,9 @@
 
                 <div class=" shadow border tab-content border rounded p-2 mt-2" id="myTabContent">
                     @foreach ($categories as $cat)
-                        <div class="tab-pane show {{ $loop->first ? 'active' : '' }}" id="nav-{{ \Str::slug($cat->name) }}"
-                            role="tabpanel" aria-labelledby="{{ \Str::slug($cat->name) }}-tab">
+                        <div class="tab-pane show {{ $loop->first ? 'active' : '' }}"
+                            id="nav-{{ \Str::slug($cat->name) }}" role="tabpanel"
+                            aria-labelledby="{{ \Str::slug($cat->name) }}-tab">
 
                             @foreach ($cat->subCategories as $subCategory)
                                 <div class="mb-3 subcategory-listing">
@@ -190,24 +191,35 @@
                                         <input type="radio" name="order_type" id="order_type_takeaway"
                                             value="takeaway">
                                     </div>
+
+                                    <div class="border-top border-bottom py-2 col-lg-12">
+
+                                        <div class="row">
+                                            <div class="col-lg-6 ">
+                                                <label for="print_yes" class="label btn btn-secondary p-2" style="cursor:pointer">Print
+                                                    Receipt</label>
+                                                <input type="radio" name="print_receipt" id="print_yes" value="1"
+                                                    checked style="cursor:pointer">
+                                            </div>
+                                            <div class="col-lg-6 ">
+                                                <label for="print_no" class="label btn btn-secondary p-2" style="cursor:pointer">No
+                                                    Print</label>
+                                                <input type="radio" name="print_receipt" id="print_no" value="0"
+                                                    style="cursor:pointer">
+                                            </div>
+                                        </div>
+                                        {{-- <input type="checkbox" name="print_receipt" id="print_receipt" style="cursor:pointer">
+                                        <label for="print_receipt" class=" label"  style="cursor:pointer;text-decoration:underline"><i class="fa-regular fa-file"></i>&nbsp;&nbsp;Print Receipt?</label> --}}
+                                    </div>
                                 </div>
 
                                 <hr>
-                                
+
                                 <div class="row">
-                                    <div class="col-lg-6">
-                                    <label for="order_note">Notes:</label>
-                                    <textarea class="form-control" name="" id="order_note" cols="30" rows="2"
-                                    placeholder="Add any notes..."></textarea>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <label for="paymentInput">Payment Method</label>
-                                        <select class="form-control" name="payment_method" id="paymentInput">
-                                            <option value="cash">Cash</option>
-                                            <option value="credit_card">Credit Card</option>
-                                            <option value="online">Online (Bank Transfer)</option>
-                                            <option value="credit_sale">On credit</option>
-                                        </select>
+                                    <div class="col-lg-12">
+                                        <label for="order_note">Notes:</label>
+                                        <textarea class="form-control" name="" id="order_note" cols="30" rows="2"
+                                            placeholder="Add any notes..."></textarea>
                                     </div>
                                 </div>
                                 <br>
@@ -421,7 +433,7 @@
             });
         }
 
-        // GENERATE RECEIPT
+        // AJAX REQUEST
         $('#btn_generate_receipt').on('click', function(e) {
             e.preventDefault();
 
@@ -430,6 +442,7 @@
             let employee_id = $('select[name="employee_id"]').val();
             let table_no = $('select[name="table_no"]').val();
             let payment_method = $('select[name="payment_method"]').val();
+            let print_receipt = $('input[name="print_receipt"]:checked').val();
 
             let orderSummary = {
                 items: orderItems,
@@ -453,6 +466,7 @@
                 <input type="hidden" name="table_no" value="${table_no}">
                 <input type="hidden" name="employee_id" value="${employee_id}">
                 <input type="hidden" name="payment_method" value="${payment_method}">
+                <input type="hidden" name="print_receipt" value="${print_receipt}">
             `);
 
             // Loop through orderItems object

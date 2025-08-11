@@ -70,7 +70,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Payment Method</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -83,6 +83,21 @@
             <option value="online_transfer">Online Bank Transfer</option>
             <option value="on_credit">On Credit (to pay later)</option>
         </select>
+        
+                                        <div class="row">
+                                            <div class="col-lg-6 ">
+                                                <label for="print_yes" class="label btn btn-secondary p-2" style="cursor:pointer">Print
+                                                    Receipt</label>
+                                                <input type="radio" name="print_receipt" id="print_yes" value="1"
+                                                    checked style="cursor:pointer">
+                                            </div>
+                                            <div class="col-lg-6 ">
+                                                <label for="print_no" class="label btn btn-secondary p-2" style="cursor:pointer">No
+                                                    Print</label>
+                                                <input type="radio" name="print_receipt" id="print_no" value="0"
+                                                    style="cursor:pointer">
+                                            </div>
+                                        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -117,17 +132,6 @@ $(document).ready(function() {
             method: 'GET',  // HTTP method
             success: function(response) {
                 alert('printing client receipt.');
-                // Assuming the response contains the URL for download
-                var downloadUrl = response.downloadUrl;
-
-                // Trigger the download by creating a hidden anchor element
-                var link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = '';  // This can specify a filename if needed, otherwise it'll use the default
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.open(url, '_blank');
 
             },
             error: function(xhr, status, error) {
@@ -139,7 +143,7 @@ $(document).ready(function() {
     $('#btn-print-office').click(function(e) {
         var paymentMethod = $('#paymentMethodInput').val();
         var orderId = $('#orderIdInput').val();
-
+        var printReceipt = $('input[name="print_receipt"]:checked').val();  // ✅ Get selected radio value
         // Generate the URL for the print route using Laravel's route() helper
         var url = "{{ route('orders.printOffice', ':orderId') }}".replace(':orderId', orderId);
 
@@ -147,29 +151,18 @@ $(document).ready(function() {
         $.ajax({
             url: url,  // Use the dynamically generated URL
             method: 'GET',  // HTTP method
-            data: { payment_method: paymentMethod },
+            data: { 
+                payment_method: paymentMethod,
+            print_receipt: printReceipt },
             success: function(response) {
                 $('#paymentModal').modal('hide');
-                alert('printing office receipt.');
-                // Assuming the response contains the URL for download
-                var downloadUrl = response.downloadUrl;
-
-                // Trigger the download by creating a hidden anchor element
-                var link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = '';  // This can specify a filename if needed, otherwise it'll use the default
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                window.open(url, '_blank');
-                // Optionally: You can remove the corresponding row after printing
+                alert('Order processed & saved.');
                 $('tr.oi' + orderId).remove();
             },
             error: function(xhr, status, error) {
                 // Handle error
                 $('#paymentModal').modal('hide');
-                alert('Failed to print the office receipt. Please try again.');
+                alert('Failed to process the office receipt. Please try again.');
             }
         });
     });

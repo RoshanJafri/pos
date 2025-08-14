@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\Item;
 use App\Models\Order;
 use App\Models\Category;
 use App\Models\Employee;
@@ -10,6 +11,7 @@ use Mike42\Escpos\Printer;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Mike42\Escpos\EscposImage;
+use Illuminate\Support\Facades\DB;
 use Mike42\Escpos\CapabilityProfile;
 use Illuminate\Support\Facades\Storage;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
@@ -67,6 +69,9 @@ class OrderController extends Controller
             'payable' => 'required|numeric|min:0',
             'note' => 'nullable|string|max:500',
             'order_type' => 'required|string|in:dine_in,takeaway,delivery',
+        ], [
+            'employee_id.required' => 'Please select a server/employee for this order.',
+            'employee_id.numeric'  => 'The server/employee must be selected.',
         ]);
 
         // Save main order
@@ -79,6 +84,7 @@ class OrderController extends Controller
         $order->payable = $request->payable;
         $order->note = $request->note;
         $order->order_type = $request->order_type;
+        $order->app = $request->delivery_app;
         $order->status = 0;
         $order->save();
 
@@ -211,6 +217,7 @@ class OrderController extends Controller
         $order->payable = $request->payable;
         $order->note = $request->note;
         $order->order_type = $request->order_type;
+        $order->app = $request->delivery_app;
         $order->status = 0;
         $order->save();
 
@@ -336,9 +343,9 @@ class OrderController extends Controller
             // Header columns
             $printer->text(
                 str_pad("Qty", 5) .
-                str_pad("Item", 17) .
-                str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
-                str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
+                    str_pad("Item", 17) .
+                    str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
+                    str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
             );
             $printer->text(str_repeat("-", 42) . "\n");
 
@@ -375,9 +382,6 @@ class OrderController extends Controller
             $printer->cut();
             $printer->close();
         }
-
-
-
     }
 
     public function clientReceipt($order, $printerName = 'XP-80D')
@@ -414,9 +418,9 @@ class OrderController extends Controller
             // Header columns
             $printer->text(
                 str_pad("Qty", 5) .
-                str_pad("Item", 17) .
-                str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
-                str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
+                    str_pad("Item", 17) .
+                    str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
+                    str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
             );
             $printer->text(str_repeat("-", 42) . "\n");
 
@@ -470,35 +474,109 @@ class OrderController extends Controller
         }
         return response('', 200);
     }
+    // public function accounts(Request $request)
+    // {
+    //     $total = 0;
+    //     if ($request->start_date) {
+    //         $total = Order::whereBetween('created_at', [
+    //             Carbon::parse($request->start_date)->startOfDay(),
+    //             Carbon::parse($request->end_date)->endOfDay()
+    //         ])->sum('payable');
+    //     } else {
+
+    //         if ($request->period == 'week') {
+    //             $total = Order::whereDate('created_at', '>=', now()->subDays(6)->startOfDay())->sum('payable');
+    //         } else if ($request->period == 'all_time') {
+    //             $total = Order::sum('payable');
+    //         } else {
+    //             $total = Order::whereDate('created_at', today())->sum('payable');
+    //         }
+    //     }
+    //     return view(
+    //         'orders.accounts',
+    //         [
+    //             'total' => $total,
+    //             'period' => $request->period,
+    //             'start_date' => $request->start_date,
+    //             'end_date' => $request->end_date
+    //         ]
+    //     );
+    // }
     public function accounts(Request $request)
     {
-        $total = 0;
-        if ($request->start_date) {
-            $total = Order::whereBetween('created_at', [
-                Carbon::parse($request->start_date)->startOfDay(),
-                Carbon::parse($request->end_date)->endOfDay()
-            ])->sum('payable');
-        } else {
+        // Validate inputs with custom messages
+        $request->validate([
+            'start_date' => 'required_with:end_date|date',
+            'end_date'   => 'required_with:start_date|date',
+        ], [
+            'start_date.required_with' => 'Please select a start date to filter sales.',
+            'end_date.required_with'   => 'Please select an end date to filter sales.',
+            'start_date.date'          => 'Start date is not a valid date.',
+            'end_date.date'            => 'End date is not a valid date.',
+        ]);
 
-            if ($request->period == 'week') {
-                $total = Order::whereDate('created_at', '>=', now()->subDays(6)->startOfDay())->sum('payable');
-            } else if ($request->period == 'all_time') {
-                $total = Order::sum('payable');
-            } else {
-                $total = Order::whereDate('created_at', today())->sum('payable');
-            }
+        $query = Order::query();
+
+        // Inclusive Date Range Filter
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $start = $request->start_date . ' 00:00:00';
+            $end   = $request->end_date . ' 23:59:59';
+            $query->whereBetween('created_at', [$start, $end]);
         }
-        return view(
-            'orders.accounts',
-            [
-                'total' => $total,
-                'period' => $request->period,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date
-            ]
-        );
+
+        // App Filter
+        $app = $request->app ?? 'all_sales';
+        if ($app === 'all') {
+            $query->whereIn('app', ['uber_eats', 'pick_me']);
+        } elseif ($app !== 'all_sales') {
+            $query->where('app', $app);
+        }
+
+        // Order Type Filter
+        if ($request->filled('order_type') && $request->order_type !== 'all') {
+            $query->where('order_type', $request->order_type);
+        }
+
+        // Item Filter
+        $itemId = $request->item_id ?? null;
+        if ($itemId) {
+            // Join with order_details to sum money spent on this item
+            $query->whereHas('details', function ($q) use ($itemId) {
+                $q->where('item_id', $itemId);
+            });
+
+            $total = DB::table('order_details')
+                ->join('orders', 'orders.id', '=', 'order_details.order_id')
+                ->where('order_details.item_id', $itemId)
+                ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($start, $end) {
+                    $q->whereBetween('orders.created_at', [$start, $end]);
+                })
+                ->when($app === 'all', fn($q) => $q->whereIn('orders.app', ['uber_eats', 'pick_me']))
+                ->when($app !== 'all_sales' && $app !== 'all', fn($q) => $q->where('orders.app', $app))
+                ->when($request->filled('order_type') && $request->order_type !== 'all', fn($q) => $q->where('orders.order_type', $request->order_type))
+                ->sum('order_details.finalCost');
+        } else {
+            // Total payable for all orders in the query
+            $total = $query->sum('payable');
+        }
+
+        $orders = $query->get();
+        $items = Item::all();
+
+        return view('orders.accounts', [
+            'orders' => $orders,
+            'items' => $items,
+            'total' => $total,
+            'start_date' => $request->start_date ?? '',
+            'end_date' => $request->end_date ?? '',
+            'period' => null,
+            'app_selected' => $app,
+            'order_type_selected' => $request->order_type ?? 'all',
+            'item_selected' => $itemId,
+        ]);
     }
     /**
+     * 
      * Remove the specified resource from storage.
      */
 

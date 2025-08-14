@@ -55,7 +55,8 @@
                                         <td> Rs. {{ $order->discount ? $order->discount : '0' }}</td>
                                         <td> Rs. {{ $order->payable }} <br> <small
                                                 class="text-primary">{{ $order->payment_method }}</small></td>
-                                        <td>{{ $order->order_type }}</td>
+                                        <td>{{ $order->order_type }} <br> <small class="text-success">
+                                            {{$order->app}}</small></td>
                                         <td>{{ date('h:i A jS \o\f M, Y', strtotime($order->created_at)) }}</td>
 
                                         {{-- Action buttons for edit and delete --}}

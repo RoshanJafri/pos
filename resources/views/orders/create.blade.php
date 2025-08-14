@@ -12,12 +12,12 @@
         <div class="mb-3">
             @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h4>Order not created:</h4>
                     <ul class="mb-0">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
         </div>
@@ -181,15 +181,25 @@
                                 </div>
                                 <hr>
                                 <div class="row">
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-4">
                                         <label for="order_type_dinein" class="label">Dine in</label>
                                         <input type="radio" name="order_type" id="order_type_dinein" value="dine_in"
                                             checked>
                                     </div>
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-4">
                                         <label for="order_type_takeaway" class="label">Take away</label>
                                         <input type="radio" name="order_type" id="order_type_takeaway"
                                             value="takeaway">
+                                    </div>
+                                    
+                                    <div class="col-lg-4">
+                                        <label for="delivery_app_select" class="label">Food Delivery App</label>
+                                        
+                                        <select name="delivery_app" id="delivery_app_select" class="form-control">
+                                            <option selected value="">In House (Takeaway/DineIn)</option>
+                                            <option value="uber_eats">Uber Eats</option>
+                                            <option value="pick_me">Pick Me</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <hr>
@@ -395,6 +405,7 @@
             let employee_id = $('select[name="employee_id"]').val();
             let table_no = $('select[name="table_no"]').val();
             let payment_method = $('select[name="payment_method"]').val();
+            let delivery_app = $('select[name="delivery_app"]').val();
 
             let orderSummary = {
                 items: orderItems,
@@ -405,6 +416,7 @@
                 discountPercentage: discountPercentage,
                 note: note,
                 order_type: order_type,
+                delivery_app: delivery_app,
             }
             $('#orderForm').empty();
             $("#orderDetailsForm").append(`
@@ -418,6 +430,7 @@
                 <input type="hidden" name="table_no" value="${table_no}">
                 <input type="hidden" name="employee_id" value="${employee_id}">
                 <input type="hidden" name="payment_method" value="${payment_method}">
+                <input type="hidden" name="delivery_app" value="${delivery_app}">
             `);
 
             // Loop through orderItems object

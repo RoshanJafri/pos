@@ -11,8 +11,13 @@ class OrderDetail extends Model
 
     protected $guarded = [];
     use HasFactory;
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
 
-    public function item(){
+    public function item()
+    {
         return $this->belongsTo(Item::class);
     }
 }

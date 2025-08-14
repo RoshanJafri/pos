@@ -180,19 +180,26 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="row">
-                                    <div class="col-lg-6">
+                                <div class="row ">
+                                    <div class="col-lg-4">
                                         <label for="order_type_dinein" class="label">Dine in</label>
                                         <input type="radio" name="order_type" id="order_type_dinein" value="dine_in"
                                             checked>
                                     </div>
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-4">
                                         <label for="order_type_takeaway" class="label">Take away</label>
                                         <input type="radio" name="order_type" id="order_type_takeaway"
                                             value="takeaway">
                                     </div>
-
-                                    <div class="border-top border-bottom py-2 col-lg-12">
+                                    <div class="col-lg-4">
+                                        <label for="delivery_app_select" class="label">Food Delivery App</label>
+                                        <select name="delivery_app" id="delivery_app_select" class="form-control">
+                                            <option value="">In House (Takeaway/DineIn)</option>
+                                            <option {{$order->app=='uber_eats'?'selected':''}} value="uber_eats">Uber Eats</option>
+                                            <option  {{$order->app=='pick_me'?'selected':''}} value="pick_me">Pick Me</option>
+                                        </select>
+                                    </div>
+                                    <div class="border-top border-bottom mt-2 py-2 col-lg-12">
 
                                         <div class="row">
                                             <div class="col-lg-6 ">
@@ -443,6 +450,7 @@
             let table_no = $('select[name="table_no"]').val();
             let payment_method = $('select[name="payment_method"]').val();
             let print_receipt = $('input[name="print_receipt"]:checked').val();
+            let delivery_app = $('select[name="delivery_app"]').val();
 
             let orderSummary = {
                 items: orderItems,
@@ -453,6 +461,7 @@
                 discountPercentage: discountPercentage,
                 note: note,
                 order_type: order_type,
+                delivery_app: delivery_app,
             }
             $('#orderForm').empty();
             $("#orderDetailsForm").append(`
@@ -467,6 +476,7 @@
                 <input type="hidden" name="employee_id" value="${employee_id}">
                 <input type="hidden" name="payment_method" value="${payment_method}">
                 <input type="hidden" name="print_receipt" value="${print_receipt}">
+                <input type="hidden" name="delivery_app" value="${delivery_app}">
             `);
 
             // Loop through orderItems object

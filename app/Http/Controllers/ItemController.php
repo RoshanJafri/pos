@@ -12,10 +12,17 @@ class ItemController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $items = Item::all();
-        return view('items.index', ['items' => $items]);
+        $search = $request->search;
+
+        if ($search) {
+            $items = Item::where('name', 'like', '%' . $search . '%')->get();
+        } else {
+            $items = Item::all();
+        }
+
+        return view('items.index', ['items' => $items, 'search' => $search]);
     }
 
     /**
@@ -24,7 +31,7 @@ class ItemController extends Controller
     public function create()
     {
         $categories = SubCategory::orderBy('name', 'asc')->get();
-        return view('items.create',[ 'categories' => $categories ]);
+        return view('items.create', ['categories' => $categories]);
     }
 
     /**

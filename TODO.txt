@@ -1,19 +1,37 @@
-1. remove name error - done
-2. Total sales of the day 
-3. Payment method - done
-4. Discount should appear on bill - done
-5. KOT - done
-6. Increase font size - done
-7. change print time to AM Payment - done
-8. edit employees and menu items - done
-9. bill should show qty * price = total for each order - done
-10. paginations -  done
-11. Try to store order details as the current price and not the previous price
-12. Order delete option
+1. Make sure your repo is initialized and main exists
 
-payment method on office receipt
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin <your-private-repo-url>
+git push -u origin main
 
+2. Create a separate branch for testing
 
-check what happens to item in order index if item deleted
+git checkout -b dev
 
+Now you’re working in dev. Any changes here won’t affect main until you merge.
+3. Work in dev branch
 
+# make changes
+git add .
+git commit -m "Test feature"
+
+4. Merge into main when stable
+
+Switch to main, then merge:
+
+git checkout main
+git merge dev
+
+Resolve conflicts if any, then:
+
+git push origin main
+
+5. Keep dev updated with the latest main
+
+After deploying or changes in main:
+
+git checkout dev
+git merge main

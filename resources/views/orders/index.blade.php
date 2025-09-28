@@ -151,7 +151,7 @@
 </script>
     <script src="{{ asset('') }}assets/libs/bootstrap/js/bootstrap-bundle.min.js"></script>
       <script>
-    const correctPassword = "0881"; // 🔐 Change this to your desired password
+    const correctPassword = "8014"; // 🔐 Change this to your desired password
 
     $('#submit-password').click(function () {
 

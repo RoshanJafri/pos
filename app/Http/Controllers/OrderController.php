@@ -583,7 +583,7 @@ class OrderController extends Controller
     public function destroy(Request $request, string $id)
     {
 
-        if ($request->admin_code !== env('DELETE_PASSWORD', '0881')) {
+        if ($request->admin_code !== env('DELETE_PASSWORD', '8014')) {
             return back()->with('error', 'Invalid password');
         }
 

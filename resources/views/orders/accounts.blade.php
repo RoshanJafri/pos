@@ -43,7 +43,7 @@
                                         {{ request('app', 'all_sales') == 'all_sales' ? 'selected' : '' }}>All sales (with
                                         or without delivery app)
                                     </option>
-                                    <option value="all" {{ request('app') == 'all' ? 'selected' : '' }}>All Apps</option>
+                                    <option value="all" {{ request('app') == 'all' ? 'selected' : '' }}>All apps (only sales from food delivery apps)</option>
                                     <option value="uber_eats" {{ request('app') == 'uber_eats' ? 'selected' : '' }}>Uber
                                         Eats</option>
                                     <option value="pick_me" {{ request('app') == 'pick_me' ? 'selected' : '' }}>PickMe

@@ -40,7 +40,8 @@
                                         Yesterday's Sale
                                     </div>
                                     <div class="col">
-                                        <a href="">
+                                        <a
+                                            href="{{ url('accounts/sales?start_date=' . now()->subDay()->format('Y-m-d') . '&end_date=' . now()->subDay()->format('Y-m-d') . '&app=all_sales&order_type=all&item_id=') }}">
                                             View Details
                                         </a>
                                     </div>
@@ -60,7 +61,8 @@
                                         Last 7 Days
                                     </div>
                                     <div class="col">
-                                        <a href="">
+                                        <a
+                                            href="{{ url('accounts/sales?start_date=' . now()->subDays(6)->format('Y-m-d') . '&end_date=' . now()->format('Y-m-d') . '&app=all_sales&order_type=all&item_id=') }}">
                                             View Details
                                         </a>
                                     </div>
@@ -81,7 +83,8 @@
                                         All Time Sales
                                     </div>
                                     <div class="col">
-                                        <a href="">
+                                        <a
+                                            href="{{ url('accounts/sales?start_date=2023-01-01&end_date=' . now()->format('Y-m-d') . '&app=all_sales&order_type=all&item_id=') }}">
                                             View Details
                                         </a>
                                     </div>
@@ -149,10 +152,12 @@
 
         <div class="row d-flex justify-content-center">
             <div class="col-lg-6">
-                <a href="{{route('accounts.sales.show')}}" class="button-gr bg-blue"><i class="fa-regular fa-square-plus"></i> Sales Report</a>
+                <a href="{{route('accounts.sales.show')}}" class="button-gr bg-blue"><i
+                        class="fa-regular fa-square-plus"></i> Sales Report</a>
             </div>
             <div class="col-lg-6">
-                <a href="{{route('accounts.items.sold')}}" class="button-gr bg-green"><i class="fa-solid fa-list-ul"></i> Items Sold</a>
+                <a href="{{route('accounts.items.sold')}}" class="button-gr bg-green"><i class="fa-solid fa-list-ul"></i>
+                    Items Sold</a>
             </div>
         </div>
     </div>

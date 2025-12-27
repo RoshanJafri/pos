@@ -51,7 +51,8 @@ class SubCategoryController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        return view('subcategories.edit', ['cat'=>SubCategory::findOrFail($id),'categories' => Category::orderBy('name', 'desc')->get()]);
+
     }
 
     /**
@@ -59,7 +60,12 @@ class SubCategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        
+        $subCategory = SubCategory::findOrFail($id);
+        $subCategory->name = $request->name;
+        $subCategory->category_id = $request->category_id;
+        $subCategory->save();
+        return redirect(route('subcategories.index'));
     }
 
     /**

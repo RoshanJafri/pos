@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Category;
+use App\Models\Portion;
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
 
@@ -61,7 +62,7 @@ class ItemController extends Controller
     public function edit(string $id)
     {
 
-        return view('items.edit', ['item' => Item::findOrFail($id), 'categories' => Category::orderBy('name', 'desc')->get()]);
+        return view('items.edit', ['item' => Item::findOrFail($id),'portions' => Portion::orderBy('name', 'desc')->get(), 'categories' => SubCategory::orderBy('name', 'desc')->get()]);
     }
 
     /**
@@ -72,6 +73,7 @@ class ItemController extends Controller
         $item = Item::findOrFail($id);
         $item->name = $request->name;
         $item->subcategory_id = $request->subcategory_id;
+        $item->portion_id = $request->portion_id;
         $item->cost = $request->cost;
         $item->save();
         return redirect(route('items.index'));

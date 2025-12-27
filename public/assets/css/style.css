@@ -30,7 +30,10 @@ a:hover{
     padding-top: 6rem;
     padding-bottom: 6rem;
     border-radius: .8rem;
-}.nav-tabs{
+}.navbar-nav .nav-link{
+    border-right: 1px solid rgba(0,0,0,.5)
+}
+.nav-tabs{
     border-bottom: none !important;
 }.orders-nav .nav-link{
     border: 1px solid #cecece !important;
@@ -57,6 +60,13 @@ a:hover{
 }
 .subcategory-listing .col-lg-3{
     padding: 0 5px;
+}.searched-items .item-card{
+    background: linear-gradient(135deg, #dad4fa, #c5e1fa); /* Pinkish */
+
+}
+.searched-items .item-card:hover{
+    background: linear-gradient(135deg, #c5e1fa, #e7d4fa); /* Pinkish */
+
 }
 /* Odd subcategory: Pinkish Gradient */
 .subcategory-listing:nth-child(odd) .item-card {
@@ -90,7 +100,9 @@ a:hover{
 /* .row[data-category="0"] .item-card { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); }
 .row[data-category="1"] .item-card { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
 .row[data-category="2"] .item-card { background: linear-gradient(135deg, #fce4ec, #f8bbd0); } */
-
+.sales-container .col{
+    min-height: 70px;
+}
 .border-top-dark{
     border-top: 1px solid #cecece;
 }.btn-delete{

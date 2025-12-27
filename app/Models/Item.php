@@ -13,4 +13,8 @@ class Item extends Model
     public function category(){
         return $this->belongsTo(SubCategory::class, 'subcategory_id');
     }
+
+    public function portion(){
+        return $this->belongsTo(Portion::class, 'portion_id');
+    }
 }

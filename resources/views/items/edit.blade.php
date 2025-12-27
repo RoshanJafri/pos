@@ -21,10 +21,20 @@
                         <div class="mb-3">
                             <label for="category" class="form-label">Category</label>
                             <select class="form-control" id="category" name="subcategory_id" required>
-                                {{$item->id}}
                                 <option value="" disabled>Select a category</option>
                                 @foreach ($categories as $cat)
-                                <option {{$item->subcategory_id == $cat->id? 'selected="selected"' :''}} value="{{$cat->id}}">{{ucfirst($cat->name)}}</option>
+                                    <option {{$item->subcategory_id == $cat->id? 'selected="selected"' :''}} value="{{$cat->id}}">{{ucfirst($cat->name)}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+            
+                        <!-- Portion Type -->
+                        <div class="mb-3">
+                            <label for="portion" class="form-label">Portion Category</label>
+                            <select class="form-control" id="portion" name="portion_id" required>
+                                <option value="" selected>Select a category</option>
+                                @foreach ($portions as $portion)
+                                    <option {{$item->portion_id == $portion->id? 'selected="selected"' :''}} value="{{$portion->id}}">{{ucfirst($portion->name)}}</option>
                                 @endforeach
                             </select>
                         </div>

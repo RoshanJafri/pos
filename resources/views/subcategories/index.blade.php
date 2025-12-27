@@ -30,7 +30,7 @@
                                 <td></td>
                                 <td>{{ucfirst($cat->name)}}</td>
                                 <td>{{ucfirst($cat->category->name)}}</td>
-                                <td><a href="" class="btn border">edit</a>&nbsp;<a href="" class="btn border">delete</a></td>
+                                <td><a href="{{route('subcategories.edit', $cat->id)}}" class="btn border">edit</a>&nbsp;<a href="" class="btn border">delete</a></td>
                             </tr>
                             @endforeach
                         </tbody>

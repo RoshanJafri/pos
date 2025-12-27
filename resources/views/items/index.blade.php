@@ -17,7 +17,7 @@
                                     <div class="input-group ml-3">
                                         <input type="text" class="form-control" placeholder="Search Item..." name="search" value="{{$search?$search:''}}">
                                         <div class="">
-                                            <button class="btn btn-outline-success" type="button"><i
+                                            <button class="btn btn-outline-success" type="submit"><i
                                                     class="fas fa-search"></i> Search</button>
                                         </div>
                                     </div>
@@ -31,11 +31,12 @@
                     <div class="card-body">
                         <table class="table">
                             <thead>
-                                <tr>
+                                <tr style="font-weight: 800">
                                     <th></th>
                                     <th>Name</th>
                                     <th>Category</th>
                                     <th>Price</th>
+                                    <th>Portion Type</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -46,6 +47,7 @@
                                         <td>{{ ucfirst($item->name) }}</td>
                                         <td>{{ $item->category->name }}</td>
                                         <td>Rs. {{ $item->cost }}</td>
+                                        <td>{{ $item->portion ? $item->portion->name:'' }}</td>
                                         <td><a href="{{ route('items.edit', $item->id) }}" class="btn border">edit</a>&nbsp;
                                             <form class="d-inline" action="{{ route('items.destroy', $item->id) }}"
                                                 method="post">@csrf @method('DELETE') <button type="submit" value=""

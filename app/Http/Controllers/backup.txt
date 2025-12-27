@@ -1,5 +1,5 @@
 
-    public function clientReceipt($order, $isCopy = false, $printerName = 'XP-80C')
+    public function clientReceipt($order, $isCopy = false, $printerName = 'XP-80C-1')
     {
 
         $order = Order::findOrFail($order);
@@ -72,7 +72,7 @@
     }
 
     
-    public function officeReceipt($order, $printerName = 'XP-80C')
+    public function officeReceipt($order, $printerName = 'XP-80C-1')
     {
 
         $order = Order::with('employee', 'details.item')->findOrFail($order);
@@ -141,7 +141,7 @@
     }
     private function printKOT($order_id, $handler, $items, $table_no)
     {
-        $printerName = env('KITCHEN_PRINTER_NAME', 'XP-80C');
+        $printerName = env('KITCHEN_PRINTER_NAME', 'XP-80C-1');
         $connector = new WindowsPrintConnector($printerName);
         $printer = new Printer($connector);
 

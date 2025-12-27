@@ -200,7 +200,7 @@ class OrderController extends Controller
             ->header('Content-Disposition', 'attachment; filename="kitchen_order.txt"');
     }
 
-    public function clientReceipt($order, $printerName = 'XP-80C')
+    public function clientReceipt($order, $printerName = 'XP-80C-1')
     {
 
         $order = Order::findOrFail($order);
@@ -269,7 +269,7 @@ class OrderController extends Controller
     }
 
 
-    public function officeReceipt($order, $printerName = 'XP-80C')
+    public function officeReceipt($order, $printerName = 'XP-80C-1')
     {
 
         $order = Order::with('employee', 'details.item')->findOrFail($order);

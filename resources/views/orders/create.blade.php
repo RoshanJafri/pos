@@ -282,7 +282,7 @@
 
                         </td>
                         <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
-                            <i class="fa-regular fa-square-minus"></i></span></td>
+                            DELETE</span></td>
                     </tr>
                 `);
                 i++;

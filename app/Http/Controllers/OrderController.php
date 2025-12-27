@@ -254,7 +254,7 @@ class OrderController extends Controller
     {
 
 
-        $connector = new WindowsPrintConnector('XP-80C');
+        $connector = new WindowsPrintConnector('XP-80C-1');
         $printer = new Printer($connector);
         $order = Order::findOrFail($order_id);
         $printer->setTextSize(2, 2); // Max text size
@@ -313,7 +313,7 @@ class OrderController extends Controller
         $order->save();
 
         if ($request->input('print_receipt')) {
-            $connector = new WindowsPrintConnector('XP-80C');
+            $connector = new WindowsPrintConnector('XP-80C-1');
             $printer = new Printer($connector);
 
             $printer->text("Print Date and time: " . date('Y-m-d h:i A') . "\n");
@@ -384,13 +384,13 @@ class OrderController extends Controller
         }
     }
 
-    public function clientReceipt($order, $printerName = 'XP-80C')
+    public function clientReceipt($order, $printerName = 'XP-80C-1')
     {
 
         $order = Order::findOrFail($order);
 
         try {
-            $connector = new WindowsPrintConnector('XP-80C');
+            $connector = new WindowsPrintConnector('XP-80C-1');
             $printer = new Printer($connector);
 
             $printer->setTextSize(1, 1);

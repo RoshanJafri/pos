@@ -49,7 +49,8 @@ Route::middleware('manager.auth')->group(function () {
         // Route::get('/sales/{date}', [AccountController::class, 'showDay'])->name('accounts.sales.day');
         Route::get('/filter', [AccountController::class, 'filter'])->name('accounts.filter');
     });
-    Route::resource('orders', OrderController::class);
+
+    Route::get('orders', OrderController::class);
 });
 
 
@@ -63,6 +64,7 @@ Route::get('orders/download/{file}', function ($file) {
 
     abort(404, 'File not found');
 })->name('orders.download');
+Route::resource('orders', OrderController::class);
 Route::get('/categories/sort', [CategoryController::class, 'sort'])->name('categories.sort');
 Route::post('/categories/updateOrder', [CategoryController::class, 'updateOrder'])->name('categories.updateOrder');
 Route::resource('categories', CategoryController::class);

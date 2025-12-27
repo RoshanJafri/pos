@@ -220,7 +220,7 @@
                                         <label for="delivery_app_select" class="label">Food Delivery App</label>
 
                                         <select name="delivery_app" id="delivery_app_select" class="form-control">
-                                            <option selected value="">In House (Takeaway/DineIn)</option>
+                                            <option selected value="">In House (Takeaway)</option>
                                             <option value="uber_eats">Uber Eats</option>
                                             <option value="pick_me">Pick Me</option>
                                         </select>

@@ -23,11 +23,16 @@ class OrderController extends Controller
      * Display a listing of the resource.
      */
 
-    public function index()
+    public function index(Request $request)
     {
         $orders = Order::with(['details.item', 'employee'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(5);
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->where('id', $request->search);
+            })
+            ->orderByDesc('created_at')
+            ->paginate(5)
+            ->withQueryString(); // keeps search param during pagination
+
         return view('orders.index', [
             'orders' => $orders,
         ]);
@@ -38,14 +43,10 @@ class OrderController extends Controller
      */
     public function create()
     {
-        // $categories = cache()->remember('categories', 3600, function () {
-        //     return Category::with(['subcategories.items'])->get();
-        // });
         $categories = Category::with(['subCategories.items'])->get();
-
-        $employees = cache()->remember('employees', 3600, function () {
-            return Employee::select('id', 'name')->orderByDesc('name')->get();
-        });
+        $employees = Employee::select('id', 'name')
+            ->orderByDesc('name')
+            ->get();
 
         $open_orders = Order::where('status', 1)->get();
 
@@ -71,7 +72,7 @@ class OrderController extends Controller
             'order_type' => 'required|string|in:dine_in,takeaway,delivery',
         ], [
             'employee_id.required' => 'Please select a server/employee for this order.',
-            'employee_id.numeric'  => 'The server/employee must be selected.',
+            'employee_id.numeric' => 'The server/employee must be selected.',
         ]);
 
         // Save main order
@@ -98,8 +99,6 @@ class OrderController extends Controller
                 'originalCost' => $item['originalCost'],
             ]);
         }
-        // $this->printKOT($order->id, $order->employee->name, $request->items, $order->table_no);
-        // return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
 
         $this->printKOT($order->id, $order->created_at, $order->employee->name, $request->items, [], $order->table_no);
         return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
@@ -183,32 +182,6 @@ class OrderController extends Controller
         }
 
 
-
-        // foreach ($request->items as $item) {
-        //     $orderDetail = $order->details()->where('item_id', $item['id'])->first();
-        //     if ($orderDetail) {
-
-
-        //         // Update existing order detail
-        //         $orderDetail->update([
-        //             'name' => $item['name'],
-        //             'quantity' => $item['qty'],
-        //             'finalCost' => $item['cost'],
-        //             'originalCost' => $item['originalCost'],
-        //         ]);
-        //     } else {
-        //         // Create new order detail if it doesn't exist
-        //         $order->details()->create([
-        //             'item_id' => $item['id'],
-        //             'name' => $item['name'],
-        //             'quantity' => $item['qty'],
-        //             'finalCost' => $item['cost'],
-        //             'originalCost' => $item['originalCost'],
-        //         ]);
-        //     }
-        // }
-
-
         $order->employee_id = $request->employee_id;
         $order->table_no = $request->table_no;
         $order->subtotal = $request->subtotal;
@@ -285,24 +258,11 @@ class OrderController extends Controller
             $printer->text($line . "\n");
         }
 
-        // if (count($oldItems) > 0) {
-        //     $printer->setJustification(Printer::JUSTIFY_CENTER);
-        //     $printer->text("OLD ORDER DETAILS\n");
-        //     $printer->text(str_repeat("x", 33) . "\n");
-
-        //     $printer->setJustification(Printer::JUSTIFY_LEFT);
-        //     foreach ($oldItems as $item) {
-        //         $line = str_pad($item['quantity'] . "x", 4) . $item['name'];
-
-        //     $printer->feed(); // Feeds one line (empty)
-        //         $printer->text($line . "\n");
-        //     }
-        // }
-
         $printer->feed(2); // feed 3 lines
         $printer->cut(); // cut the paper
         $printer->close();
     }
+
     public function officeReceipt(Request $request, $order)
     {
 
@@ -311,6 +271,20 @@ class OrderController extends Controller
         $order->status = 1;
         $order->payment_method = $paymentMethod;
         $order->save();
+
+
+        // ✅ SUBTRACT PORTIONS STOCK
+        foreach ($order->details as $detail) {
+
+            $portionId = $detail->item->portion_id;
+            $qtyUsed = $detail->quantity;
+
+            if ($portionId) {
+                DB::table('portions')
+                    ->where('id', $portionId)
+                    ->decrement('quantity', $qtyUsed);
+            }
+        }
 
         if ($request->input('print_receipt')) {
             $connector = new WindowsPrintConnector('XP-80C');
@@ -343,9 +317,9 @@ class OrderController extends Controller
             // Header columns
             $printer->text(
                 str_pad("Qty", 5) .
-                    str_pad("Item", 17) .
-                    str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
-                    str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
+                str_pad("Item", 17) .
+                str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
+                str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
             );
             $printer->text(str_repeat("-", 42) . "\n");
 
@@ -418,9 +392,9 @@ class OrderController extends Controller
             // Header columns
             $printer->text(
                 str_pad("Qty", 5) .
-                    str_pad("Item", 17) .
-                    str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
-                    str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
+                str_pad("Item", 17) .
+                str_pad("Rate", 10, ' ', STR_PAD_LEFT) .
+                str_pad("Price", 10, ' ', STR_PAD_LEFT) . "\n"
             );
             $printer->text(str_repeat("-", 42) . "\n");
 
@@ -474,122 +448,19 @@ class OrderController extends Controller
         }
         return response('', 200);
     }
-    // public function accounts(Request $request)
-    // {
-    //     $total = 0;
-    //     if ($request->start_date) {
-    //         $total = Order::whereBetween('created_at', [
-    //             Carbon::parse($request->start_date)->startOfDay(),
-    //             Carbon::parse($request->end_date)->endOfDay()
-    //         ])->sum('payable');
-    //     } else {
-
-    //         if ($request->period == 'week') {
-    //             $total = Order::whereDate('created_at', '>=', now()->subDays(6)->startOfDay())->sum('payable');
-    //         } else if ($request->period == 'all_time') {
-    //             $total = Order::sum('payable');
-    //         } else {
-    //             $total = Order::whereDate('created_at', today())->sum('payable');
-    //         }
-    //     }
-    //     return view(
-    //         'orders.accounts',
-    //         [
-    //             'total' => $total,
-    //             'period' => $request->period,
-    //             'start_date' => $request->start_date,
-    //             'end_date' => $request->end_date
-    //         ]
-    //     );
-    // }
-    public function accounts(Request $request)
-    {
-        // Validate inputs with custom messages
-        $request->validate([
-            'start_date' => 'required_with:end_date|date',
-            'end_date'   => 'required_with:start_date|date',
-        ], [
-            'start_date.required_with' => 'Please select a start date to filter sales.',
-            'end_date.required_with'   => 'Please select an end date to filter sales.',
-            'start_date.date'          => 'Start date is not a valid date.',
-            'end_date.date'            => 'End date is not a valid date.',
-        ]);
-
-        $query = Order::query();
-
-        // Inclusive Date Range Filter
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $start = $request->start_date . ' 00:00:00';
-            $end   = $request->end_date . ' 23:59:59';
-            $query->whereBetween('created_at', [$start, $end]);
-        }
-
-        // App Filter
-        $app = $request->app ?? 'all_sales';
-        if ($app === 'all') {
-            $query->whereIn('app', ['uber_eats', 'pick_me']);
-        } elseif ($app !== 'all_sales') {
-            $query->where('app', $app);
-        }
-
-        // Order Type Filter
-        if ($request->filled('order_type') && $request->order_type !== 'all') {
-            $query->where('order_type', $request->order_type);
-        }
-
-        // Item Filter
-        $itemId = $request->item_id ?? null;
-        if ($itemId) {
-            // Join with order_details to sum money spent on this item
-            $query->whereHas('details', function ($q) use ($itemId) {
-                $q->where('item_id', $itemId);
-            });
-
-            $total = DB::table('order_details')
-                ->join('orders', 'orders.id', '=', 'order_details.order_id')
-                ->where('order_details.item_id', $itemId)
-                ->when($request->filled('start_date') && $request->filled('end_date'), function ($q) use ($start, $end) {
-                    $q->whereBetween('orders.created_at', [$start, $end]);
-                })
-                ->when($app === 'all', fn($q) => $q->whereIn('orders.app', ['uber_eats', 'pick_me']))
-                ->when($app !== 'all_sales' && $app !== 'all', fn($q) => $q->where('orders.app', $app))
-                ->when($request->filled('order_type') && $request->order_type !== 'all', fn($q) => $q->where('orders.order_type', $request->order_type))
-                ->sum('order_details.finalCost');
-        } else {
-            // Total payable for all orders in the query
-            $total = $query->sum('payable');
-        }
-
-        $orders = $query->get();
-        $items = Item::all();
-
-        return view('orders.accounts', [
-            'orders' => $orders,
-            'items' => $items,
-            'total' => $total,
-            'start_date' => $request->start_date ?? '',
-            'end_date' => $request->end_date ?? '',
-            'period' => null,
-            'app_selected' => $app,
-            'order_type_selected' => $request->order_type ?? 'all',
-            'item_selected' => $itemId,
-        ]);
-    }
-    /**
-     * 
-     * Remove the specified resource from storage.
-     */
 
     public function destroy(Request $request, string $id)
     {
 
         if ($request->admin_code !== env('DELETE_PASSWORD', '8014')) {
-            return back()->with('error', 'Invalid password');
+            return back()->withErrors([
+                'admin_code' => 'Invalid password'
+            ]);
         }
 
         $order = Order::findOrFail($id);
         $order->delete();
 
-        return redirect()->back();
+        return back()->with('success', 'Order deleted successfully');
     }
 }

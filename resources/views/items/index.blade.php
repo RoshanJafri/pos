@@ -31,11 +31,12 @@
                     <div class="card-body">
                         <table class="table">
                             <thead>
-                                <tr>
+                                <tr style="font-weight: 800">
                                     <th></th>
                                     <th>Name</th>
                                     <th>Category</th>
                                     <th>Price</th>
+                                    <th>Portion Type</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -45,6 +46,7 @@
                                         <td>{{ $item->id }}</td>
                                         <td>{{ ucfirst($item->name) }}</td>
                                         <td>{{ $item->category->name }}</td>
+                                        <td>{{ $item->portion ? $item->portion->name:'' }}</td>
                                         <td>Rs. {{ $item->cost }}</td>
                                         <td><a href="{{ route('items.edit', $item->id) }}" class="btn border">edit</a>&nbsp;
                                             <form class="d-inline" action="{{ route('items.destroy', $item->id) }}"

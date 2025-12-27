@@ -29,6 +29,17 @@
                             </select>
                         </div>
             
+                        <!-- Portion Type -->
+                        <div class="mb-3">
+                            <label for="portion" class="form-label">Portion Category</label>
+                            <select class="form-control" id="portion" name="portion_id" required>
+                                <option value="" selected>Select a category</option>
+                                @foreach ($portions as $portion)
+                                    <option {{$item->portion_id == $portion->id? 'selected="selected"' :''}} value="{{$portion->id}}">{{ucfirst($portion->name)}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+            
                         <!-- Price -->
                         <div class="mb-3">
                             <label for="price" class="form-label">Price (Rs)</label>

@@ -15,8 +15,8 @@
     <nav class="navbar navbar-expand-lg navbar-light border-bottom bg-light">
         <div class="container d-flex justify-content-between">
             <div class="">
-                <a class="navbar-brand heavy" href="#"><img src="{{ asset('') }}assets/images/logo.png"
-                        alt="" width="70px">KafeKarachi</a>
+                <a class="navbar-brand heavy" href="#"><img src="{{ asset('') }}assets/images/logo.png" alt=""
+                        width="70px">KafeKarachi</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -43,14 +43,25 @@
                         <a class="nav-link" href="{{route('employees.index')}}">Employees</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{route('orders.accounts')}}">Sales</a>
+                        <a class="nav-link" href="{{route('kitchen.index')}}">Kitchen</a>
                     </li>
-		
                     <li class="nav-item">
+                        <a class="nav-link" href="{{url('accounts')}}">Sales</a>
+                    </li>
+                    @if(session()->has('manager_authenticated'))
+                    
+                        <form method="POST" action="{{ route('manager.logout') }}" class="ms-3">
+                            @csrf
+                            <button class="btn btn-outline-danger btn-sm">
+                                Logout
+                            </button>
+                        </form>
+                    @endif
+                    {{-- <li class="nav-item">
                         <button id="clearCacheBtn" type="button" class="btn btn-outline-secondaryf">
                             Refresh
                         </button>
-                    </li>
+                    </li> --}}
                 </ul>
             </div>
         </div>
@@ -60,10 +71,11 @@
     <script src="{{ asset('') }}assets/libs/jquery/all.min.js"></script>
     <script src="{{ asset('') }}assets/libs/bootstrap/js/bootstrap.min.js"></script>
     <script src="{{asset('')}}assets/libs/fontawesome/script.js"></script>
-    
+
     @stack('scripts')
+    {{--
     <script>
-        document.getElementById('clearCacheBtn').addEventListener('click', function() {
+        document.getElementById('clearCacheBtn').addEventListener('click', function () {
             if (confirm('Are you sure you want to clear cache?')) {
                 fetch('{{ route('admin.clear.cache') }}', {
                     method: 'POST',
@@ -72,19 +84,19 @@
                         'Accept': 'application/json',
                     },
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Cache cleared successfully!');
-                        location.reload(); // Optional: reload page after
-                    }
-                })
-                .catch(error => {
-                    console.error('Error clearing cache:', error);
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Cache cleared successfully!');
+                            location.reload(); // Optional: reload page after
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error clearing cache:', error);
+                    });
             }
         });
-        </script>
+    </script> --}}
 </body>
 
 </html>

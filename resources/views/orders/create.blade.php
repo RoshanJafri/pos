@@ -21,8 +21,32 @@
                 </div>
             @endif
         </div>
+
         <div class="row">
             <div class="col-lg-7">
+
+                {{-- SEARCH DIV --}}
+                <div class="mb-3 d-flex gap-2">
+                    <input type="text" id="itemSearch" class="form-control form-control-lg"
+                        placeholder="Search items... (type at least 2 letters)">
+
+                    <button type="button" id="resetSearch" class="btn btn-outline btn-lg">
+                        CLEAR
+                    </button>
+                </div>
+                <div id="searchResults" class="mb-3 d-none border rounded p-2 searched-items">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Search Results</h5>
+                        <button type="button" id="closeSearchResults" class="btn btn-sm btn-outline-danger">
+                            Close
+                        </button>
+                    </div>
+
+                    <div class="row" id="searchResultsContainer"></div>
+                </div>
+
+
+                <hr>
                 <ul class=" shadow border orders-nav nav nav-tabs nav-justified" id="myTab" role="tablist">
                     @foreach ($categories as $cat)
                         <li class="nav-item">
@@ -46,10 +70,10 @@
                                     <div class="row">
                                         @foreach ($subCategory->items as $item)
                                             <div class="col-lg-3">
-                                                <div class="card mb-2 item-card" data-cost="{{ $item->cost }}" data-item-id="{{ $item->id }}"
+                                                <div class="card mb-2 item-card" data-name="{{ strtolower($item->name) }}"
+                                                    data-cost="{{ $item->cost }}" data-item-id="{{ $item->id }}"
                                                     data-name="{{ $item->name }}">
-                                                    <div class=" card-body" style="min-height:8em"
-                                                        >
+                                                    <div class=" card-body" style="min-height:8em">
                                                         <div><strong>{{ $item->name }}</strong></div>
                                                         <div class="border-top-dark mt-2 pt-2">
                                                             <i>Rs. {{ $item->cost }}</i>
@@ -133,7 +157,8 @@
                                     <tr>
                                         <th>Taxes</th>
                                         <td class="text-right"><small>37% of <span class="subtotal"></span></small><br>Rs.
-                                            <span class="tax"></span></td>
+                                            <span class="tax"></span>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th><strong>Payable</strong></th>
@@ -148,7 +173,7 @@
                                     <div class="col-lg-6">
                                         <label for="employee_id" class="label">Server/Handler</label>
                                         <select name="employee_id" id="employee_id" class="form-control">
-                                            <option value="none-selected" disabled selected>Select a Server</option>
+                                            <option value="none-selected" disabled>Select a Server</option>
                                             @foreach ($employees as $employee)
                                                 <option value="{{ $employee->id }}">{{ $employee->name }}</option>
                                             @endforeach
@@ -181,20 +206,19 @@
                                 </div>
                                 <hr>
                                 <div class="row">
-                                    <div class="col-lg-4">
+                                    <div class="col">
                                         <label for="order_type_dinein" class="label">Dine in</label>
                                         <input type="radio" name="order_type" id="order_type_dinein" value="dine_in"
                                             checked>
                                     </div>
-                                    <div class="col-lg-4">
+                                    <div class="col">
                                         <label for="order_type_takeaway" class="label">Take away</label>
-                                        <input type="radio" name="order_type" id="order_type_takeaway"
-                                            value="takeaway">
+                                        <input type="radio" name="order_type" id="order_type_takeaway" value="takeaway">
                                     </div>
-                                    
-                                    <div class="col-lg-4">
+
+                                    <div class="col delivery_app_select-container d-none">
                                         <label for="delivery_app_select" class="label">Food Delivery App</label>
-                                        
+
                                         <select name="delivery_app" id="delivery_app_select" class="form-control">
                                             <option selected value="">In House (Takeaway/DineIn)</option>
                                             <option value="uber_eats">Uber Eats</option>
@@ -205,9 +229,9 @@
                                 <hr>
                                 <div class="row">
                                     <div class="col-lg-12">
-                                    <label for="order_note">Notes:</label>
-                                    <textarea class="form-control" name="" id="order_note" cols="30" rows="2"
-                                    placeholder="Add any notes..."></textarea>
+                                        <label for="order_note">Notes:</label>
+                                        <textarea class="form-control" name="" id="order_note" cols="30" rows="2"
+                                            placeholder="Add any notes..."></textarea>
                                     </div>
                                 </div>
                                 <br>
@@ -227,6 +251,25 @@
     </div>
 @endpush
 @push('scripts')
+    <script>
+        $(document).ready(function () {
+
+            function toggleDeliveryApp() {
+                if ($('#order_type_takeaway').is(':checked')) {
+                    $('.delivery_app_select-container').removeClass('d-none');
+                } else {
+                    $('.delivery_app_select-container').addClass('d-none');
+                    $('#delivery_app_select').val('');
+                }
+            }
+
+            // On change
+            $('input[name="order_type"]').on('change', toggleDeliveryApp);
+
+            // On page load (important)
+            toggleDeliveryApp();
+        });
+    </script>
     <script>
         let orderItems = {}; // Associative array to store items
 
@@ -269,22 +312,22 @@
                 let item = orderItems[key];
                 $('.order-details-table tbody').append(
                     `
-                    <tr class="order-details-item">
-                        <td class="small">${i}</td>
-                        <input type="hidden" name="name" value="${item.name}">
-                        <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
+                                                    <tr class="order-details-item">
+                                                        <td class="small">${i}</td>
+                                                        <input type="hidden" name="name" value="${item.name}">
+                                                        <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
                     (item.discount > 0 ? `<s>Rs. ${item.originalCost}</s>` : '') + ` </td>
-                        <td>
+                                                        <td>
 
-                            Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
-                            <br> 
-                            Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
+                                                            Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
+                                                            <br> 
+                                                            Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
 
-                        </td>
-                        <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
-                            <i class="fa-regular fa-square-minus"></i></span></td>
-                    </tr>
-                `);
+                                                        </td>
+                                                        <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
+                                                            <i class="fa-regular fa-square-minus"></i></span></td>
+                                                    </tr>
+                                                `);
                 i++;
             });
 
@@ -303,7 +346,7 @@
         }
 
         // Click event for adding items
-        $('.item-card').click(function() {
+        $(document).on('click', '.item-card', function () {
             $('.order-summary-container').removeClass('d-none');
             let itemName = $(this).data('name');
             let itemCost = $(this).data('cost');
@@ -327,7 +370,7 @@
         });
 
         // order summary discount buttons handler
-        $('.btn-discount').click(function() {
+        $('.btn-discount').click(function () {
             discount_percentage = $(this).data('discount-value');
             discount = Math.round((subtotal * discount_percentage) * 100) / 100;
             $('.discount-input').val(discount);
@@ -347,7 +390,7 @@
         }
 
         // individual discount handler
-        $(document).on('change', '.item-discount-input', function() {
+        $(document).on('change', '.item-discount-input', function () {
             let discount = parseFloat($(this).val()) || 0; // Ensure it's a valid number
             let targetId = $(this).data('item-id');
 
@@ -360,7 +403,7 @@
         });
 
         // qty input handler
-        $(document).on('change', '.item-qty-input', function() {
+        $(document).on('change', '.item-qty-input', function () {
             let newQty = parseFloat($(this).val()) || 0; // Ensure it's a valid number
             let targetId = $(this).data('item-id');
 
@@ -371,7 +414,7 @@
         });
 
         // changing individual item price
-        $(document).on('change', '.item-price-input', function() {
+        $(document).on('change', '.item-price-input', function () {
             let newPrice = parseFloat($(this).val()) || 0; // Ensure it's a valid number
             let targetId = $(this).data('item-id');
 
@@ -384,7 +427,7 @@
 
         // Function to attach delete event
         function attachDeleteEvent() {
-            $('.item-delete').off('click').on('click', function() {
+            $('.item-delete').off('click').on('click', function () {
                 let itemId = $(this).data('item-id');
                 delete orderItems[itemId]; // Remove item from array
 
@@ -397,7 +440,7 @@
         }
 
         // GENERATE RECEIPT
-        $('#btn_generate_receipt').on('click', function(e) {
+        $('#btn_generate_receipt').on('click', function (e) {
             e.preventDefault();
 
             let note = $('#order_note').val();
@@ -420,32 +463,93 @@
             }
             $('#orderForm').empty();
             $("#orderDetailsForm").append(`
-                <input type="hidden" name="subtotal" value="${subtotal}">
-                <input type="hidden" name="tax" value="${tax}">
-                <input type="hidden" name="payable" value="${payable}">
-                <input type="hidden" name="discount" value="${discount}">
-                <input type="hidden" name="discountPercentage" value="${discountPercentage}">
-                <input type="hidden" name="note" value="${note}">
-                <input type="hidden" name="order_type" value="${order_type}">
-                <input type="hidden" name="table_no" value="${table_no}">
-                <input type="hidden" name="employee_id" value="${employee_id}">
-                <input type="hidden" name="payment_method" value="${payment_method}">
-                <input type="hidden" name="delivery_app" value="${delivery_app}">
-            `);
+                                                <input type="hidden" name="subtotal" value="${subtotal}">
+                                                <input type="hidden" name="tax" value="${tax}">
+                                                <input type="hidden" name="payable" value="${payable}">
+                                                <input type="hidden" name="discount" value="${discount}">
+                                                <input type="hidden" name="discountPercentage" value="${discountPercentage}">
+                                                <input type="hidden" name="note" value="${note}">
+                                                <input type="hidden" name="order_type" value="${order_type}">
+                                                <input type="hidden" name="table_no" value="${table_no}">
+                                                <input type="hidden" name="employee_id" value="${employee_id}">
+                                                <input type="hidden" name="payment_method" value="${payment_method}">
+                                                <input type="hidden" name="delivery_app" value="${delivery_app}">
+                                            `);
 
             // Loop through orderItems object
             Object.keys(orderItems).forEach((key, index) => {
                 const item = orderItems[key];
                 $('#orderDetailsForm').append(`
-                    <input type="hidden" name="items[${index}][id]" value="${item.id}">
-                    <input type="hidden" name="items[${index}][name]" value="${item.name}">
-                    <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
-                    <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
-                    <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
-                `);
+                                                    <input type="hidden" name="items[${index}][id]" value="${item.id}">
+                                                    <input type="hidden" name="items[${index}][name]" value="${item.name}">
+                                                    <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
+                                                    <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
+                                                    <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
+                                                `);
             });
             $('#orderDetailsForm').submit();
 
         });
     </script>
+    <script>
+        $(document).ready(function () {
+
+            const $searchInput = $('#itemSearch');
+            const $searchResults = $('#searchResults');
+            const $resultsBox = $('#searchResultsContainer');
+            const $items = $('.item-card');
+
+            function resetSearch() {
+                $searchInput.val('');
+                $resultsBox.empty();
+                $searchResults.addClass('d-none');
+
+                // Show tabs back
+                $('#myTab, #myTabContent').removeClass('d-none');
+            }
+
+            // Live search
+            $searchInput.on('keyup', function () {
+                let query = $(this).val().toLowerCase().trim();
+
+                $resultsBox.empty();
+                $searchResults.addClass('d-none');
+
+                if (query.length < 2) {
+                    $('#myTab, #myTabContent').removeClass('d-none');
+                    return;
+                }
+
+                let matches = 0;
+
+                $items.each(function () {
+                    let name = $(this).data('name');
+
+                    if (name.includes(query)) {
+                        matches++;
+
+                        let $clone = $(this).closest('.col-lg-3').clone();
+                        $resultsBox.append($clone);
+                    }
+                });
+
+                if (matches > 0) {
+                    $('#myTab, #myTabContent').addClass('d-none');
+                    $searchResults.removeClass('d-none');
+                }
+            });
+
+            // Reset button next to input
+            $('#resetSearch').on('click', function () {
+                resetSearch();
+            });
+
+            // Close button inside results
+            $('#closeSearchResults').on('click', function () {
+                resetSearch();
+            });
+
+        });
+    </script>
+
 @endpush

@@ -125,7 +125,7 @@ return [
     'key' => env('APP_KEY'),
 
     'cipher' => 'AES-256-CBC',
-
+    'manager_password' => env('MANAGER_PASSWORD'),
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver

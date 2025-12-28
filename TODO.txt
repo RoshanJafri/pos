@@ -1,5 +1,0 @@
-2. character miniscule printing when new order but capital on edit
-3. delete categories safely
-4. mb_strimwidth while trying to view sales
-5. multiple passwords, one for order one for sales
-6. select amount of receipts required when creating order

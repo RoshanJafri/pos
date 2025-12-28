@@ -21,7 +21,7 @@ class SubCategoryController extends Controller
      */
     public function create()
     {
-        return view('subcategories.create', ['categories' => Category::orderBy('name','asc')->get()]);
+        return view('subcategories.create', ['categories' => Category::orderBy('name', 'asc')->get()]);
     }
 
     /**
@@ -51,7 +51,7 @@ class SubCategoryController extends Controller
      */
     public function edit(string $id)
     {
-        return view('subcategories.edit', ['cat'=>SubCategory::findOrFail($id),'categories' => Category::orderBy('name', 'desc')->get()]);
+        return view('subcategories.edit', ['cat' => SubCategory::findOrFail($id), 'categories' => Category::orderBy('name', 'desc')->get()]);
 
     }
 
@@ -60,7 +60,7 @@ class SubCategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        
+
         $subCategory = SubCategory::findOrFail($id);
         $subCategory->name = $request->name;
         $subCategory->category_id = $request->category_id;
@@ -73,6 +73,23 @@ class SubCategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $subCategory = SubCategory::with('items')->findOrFail($id);
+
+        // ❌ Block delete if items exist
+        if ($subCategory->items->isNotEmpty()) {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'delete_error' => 'This sub-category cannot be deleted because it contains items.'
+                ])
+                ->with('blocked_items', $subCategory->items);
+        }
+
+        // ✅ Delete
+        $subCategory->delete();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Sub-category deleted successfully.');
     }
 }

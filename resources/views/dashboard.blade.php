@@ -63,11 +63,11 @@
                                             OFFICE RECEIPT</button>&nbsp;
                                         <a href="{{route('orders.edit', $order->id)}}" class="btn border btn-primary"><i
                                                 class="fa-solid fa-pencil"></i> EDIT</a>
-                                        <button class="btn btn-danger btn-delete" data-id="{{ $order->id }}"
+                                        {{-- <button class="btn btn-danger btn-delete" data-id="{{ $order->id }}"
                                             data-action="{{ route('orders.destroy', $order->id) }}" data-bs-toggle="modal"
                                             data-bs-target="#deleteModal">
                                             Delete
-                                        </button>
+                                        </button> --}}
                                     </td>
                                 </tr>
 

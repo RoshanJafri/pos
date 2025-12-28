@@ -55,6 +55,19 @@
                                         </td>
                                     </tr>
                                 @endforeach
+                                    <tr>
+                                        <td>161</td>
+                                        <td>Curry Rice</td>
+                                        <td>Specials</td>
+                                        <td>Rs. 500</td>
+                                        <td></td>
+                                        <td>
+                                            <a href="{{ url('sales/login') }}" class="btn  border">Edit</a>&nbsp;
+                                            <form class="d-inline" action=""
+                                                method="post"><button type="submit" value=""
+                                                    class="btn border">delete</button></form>
+                                        </td>
+                                    </tr>
                             </tbody>
                         </table>
                     </div>

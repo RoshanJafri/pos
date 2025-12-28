@@ -25,6 +25,8 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         // ...
         'manager.auth' => \App\Http\Middleware\ManagerAuth::class,
+        'sales.auth' => \App\Http\Middleware\SalesPassword::class,
+        'orders.auth' => \App\Http\Middleware\OrdersPassword::class,
     ];
     /**
      * The application's route middleware groups.

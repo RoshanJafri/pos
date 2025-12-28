@@ -45,16 +45,20 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{route('kitchen.index')}}">Kitchen</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{url('accounts')}}">Sales</a>
-                    </li>
-                    @if(session()->has('manager_authenticated'))
-                    
-                        <form method="POST" action="{{ route('manager.logout') }}" class="ms-3">
+                    @if (session('sales_authenticated'))
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{url('accounts')}}">Sales</a>
+                        </li>
+                        <form method="POST" action="{{ route('sales.logout') }}">
                             @csrf
-                            <button class="btn btn-outline-danger btn-sm">
-                                Logout
-                            </button>
+                            <button class="btn btn-sm btn-outline-danger">Logout Sales</button>
+                        </form>
+                    @endif
+
+                    @if (session('orders_authenticated'))
+                        <form method="POST" action="{{ route('orders.logout') }}">
+                            @csrf
+                            <button class="btn btn-sm btn-outline-danger">Logout Orders</button>
                         </form>
                     @endif
                     {{-- <li class="nav-item">

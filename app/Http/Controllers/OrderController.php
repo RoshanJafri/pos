@@ -63,6 +63,7 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'receipt_count' => 'required|integer|min:0|max:3',
             'employee_id' => 'required|numeric',
             'table_no' => 'nullable',
             'subtotal' => 'required|numeric|min:0',
@@ -99,8 +100,9 @@ class OrderController extends Controller
                 'originalCost' => $item['originalCost'],
             ]);
         }
-
-        $this->printKOT($order->id, $order->created_at, $order->employee->name, $request->items, [], $order->table_no);
+        for ($i = 0; $i < count($request->receipt_count); $i++) {
+            $this->printKOT($order->id, $order->created_at, $order->employee->name, $request->items, [], $order->table_no);
+        }
         return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
     }
 
@@ -218,12 +220,12 @@ class OrderController extends Controller
             }
         }
         if ($request->input('print_receipt')) {
-            $this->printKOT($order->id, $order->updated_at, $order->employee->name, $request->items, $oldItems, $order->table_no);
+            $this->printKOT($order->id, $order->updated_at, $order->employee->name, $request->items, $oldItems, $order->table_no, $update = TRUE);
         }
         return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
     }
 
-    private function printKOT($order_id, $order_time, $handler, $items, $oldItems, $table_no)
+    private function printKOT($order_id, $order_time, $handler, $items, $oldItems, $table_no, $update = FALSE)
     {
 
 
@@ -248,11 +250,16 @@ class OrderController extends Controller
         $printer->text(str_repeat("-", 23) . "\n");
 
         $printer->setJustification(Printer::JUSTIFY_CENTER);
-        $printer->text("UPDATED ORDER DETAILS\n");
+
+        if ($update) {
+            $printer->text("UPDATED ORDER DETAILS\n");
+        }
 
         $printer->setJustification(Printer::JUSTIFY_LEFT);
         foreach ($items as $item) {
-            $line = str_pad($item['qty'] . "x", 4) . $item['name'];
+            $itemName = ucfirst($item['name']);
+
+            $line = str_pad($item['qty'] . "x", 4) . $itemName;
 
             $printer->feed(); // Feeds one line (empty)
             $printer->text($line . "\n");
@@ -404,12 +411,35 @@ class OrderController extends Controller
                     ? substr($item->item->name, 0, 12) . '...'
                     : $item->item->name;
 
-                $line = str_pad($item->quantity, 5) .
-                    str_pad($name, 17) .
-                    str_pad(number_format($item->originalCost, 2), 10, ' ', STR_PAD_LEFT) .
-                    str_pad(number_format($item->finalCost * $item->quantity, 2), 10, ' ', STR_PAD_LEFT);
+                // Complementary item
+                if ((float) $item->finalCost == 0) {
 
-                $printer->text($line . "\n");
+                    $line =
+                        str_pad($item->quantity, 5) .
+                        str_pad($name, 17) .
+                        str_pad('', 10) .
+                        str_pad('', 10);
+
+                    $printer->text($line . "\n");
+
+                    // Print "complementary" in tiny text
+                    $printer->setTextSize(1, 1);
+                    $printer->text(
+                        str_pad('', 5) .
+                        str_pad('complementary', 37) . "\n"
+                    );
+
+                } else {
+
+                    // Normal priced item
+                    $line =
+                        str_pad($item->quantity, 5) .
+                        str_pad($name, 17) .
+                        str_pad(number_format($item->originalCost, 2), 10, ' ', STR_PAD_LEFT) .
+                        str_pad(number_format($item->finalCost * $item->quantity, 2), 10, ' ', STR_PAD_LEFT);
+
+                    $printer->text($line . "\n");
+                }
             }
 
             // Totals with padding

@@ -56,9 +56,10 @@ Route::middleware('sales.auth')->group(function () {
     });
 
 });
-Route::middleware('orders.auth')->group(function () {
-    Route::get('orders', [OrderController::class, 'index']);
-});
+Route::get('orders', [OrderController::class, 'index'])->middleware('orders.auth')->name('orders.index');
+
+// Define the rest of the resource routes without middleware
+Route::resource('orders', OrderController::class)->except(['index']);
 
 Route::get('orders/printClient/{id}', [OrderController::class, 'clientReceipt'])->name('orders.printClient');
 Route::get('orders/printOffice/{id}', [OrderController::class, 'officeReceipt'])->name('orders.printOffice');
@@ -70,7 +71,6 @@ Route::get('orders/download/{file}', function ($file) {
 
     abort(404, 'File not found');
 })->name('orders.download');
-Route::resource('orders', OrderController::class);
 Route::get('/categories/sort', [CategoryController::class, 'sort'])->name('categories.sort');
 Route::post('/categories/updateOrder', [CategoryController::class, 'updateOrder'])->name('categories.updateOrder');
 Route::resource('categories', CategoryController::class);

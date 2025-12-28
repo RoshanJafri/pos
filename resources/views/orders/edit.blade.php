@@ -20,6 +20,28 @@
         </div>
         <div class="row">
             <div class="col-lg-7">
+
+                {{-- SEARCH --}}
+                <div class="mb-3 d-flex gap-2">
+                    <input type="text" id="itemSearch" class="form-control form-control-lg"
+                        placeholder="Search items... (type at least 2 letters)">
+
+                    <button type="button" id="resetSearch" class="btn btn-outline btn-lg">
+                        CLEAR
+                    </button>
+                </div>
+
+                <div id="searchResults" class="mb-3 d-none border rounded p-2 searched-items">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Search Results</h5>
+                        <button type="button" id="closeSearchResults" class="btn btn-sm btn-outline-danger">
+                            Close
+                        </button>
+                    </div>
+
+                    <div class="row" id="searchResultsContainer"></div>
+                </div>
+
                 <h3>Editing Order # {{ $order->id }} <small>(Rs. {{ $order->subtotal }})</small></h3>
                 <ul class=" shadow border orders-nav nav nav-tabs nav-justified" id="myTab" role="tablist">
                     @foreach ($categories as $cat)
@@ -34,9 +56,8 @@
 
                 <div class=" shadow border tab-content border rounded p-2 mt-2" id="myTabContent">
                     @foreach ($categories as $cat)
-                        <div class="tab-pane show {{ $loop->first ? 'active' : '' }}"
-                            id="nav-{{ \Str::slug($cat->name) }}" role="tabpanel"
-                            aria-labelledby="{{ \Str::slug($cat->name) }}-tab">
+                        <div class="tab-pane show {{ $loop->first ? 'active' : '' }}" id="nav-{{ \Str::slug($cat->name) }}"
+                            role="tabpanel" aria-labelledby="{{ \Str::slug($cat->name) }}-tab">
 
                             @foreach ($cat->subCategories as $subCategory)
                                 <div class="mb-3 subcategory-listing">
@@ -45,9 +66,9 @@
                                     <div class="row">
                                         @foreach ($subCategory->items as $item)
                                             <div class="col-lg-3">
-                                                <div class="card mb-2 item-card" data-cost="{{ $item->cost }}"
-                                                    data-item-id="{{ $item->id }}" data-name="{{ $item->name }}">
-                                                    <div class=" card-body" style="min-height:8em">
+                                                <div class="card mb-2 item-card" data-name="{{ strtolower($item->name) }}"
+                                                    data-cost="{{ $item->cost }}" data-item-id="{{ $item->id }}">
+                                                    <div class="card-body" style="min-height:8em">
                                                         <div><strong>{{ $item->name }}</strong></div>
                                                         <div class="border-top-dark mt-2 pt-2">
                                                             <i>Rs. {{ $item->cost }}</i>
@@ -188,35 +209,42 @@
                                     </div>
                                     <div class="col-lg-4">
                                         <label for="order_type_takeaway" class="label">Take away</label>
-                                        <input type="radio" name="order_type" id="order_type_takeaway"
-                                            value="takeaway">
+                                        <input type="radio" name="order_type" id="order_type_takeaway" value="takeaway">
                                     </div>
                                     <div class="col-lg-4">
                                         <label for="delivery_app_select" class="label">Food Delivery App</label>
                                         <select name="delivery_app" id="delivery_app_select" class="form-control">
                                             <option value="">In House (Takeaway/DineIn)</option>
-                                            <option {{$order->app=='uber_eats'?'selected':''}} value="uber_eats">Uber Eats</option>
-                                            <option  {{$order->app=='pick_me'?'selected':''}} value="pick_me">Pick Me</option>
+                                            <option {{$order->app == 'uber_eats' ? 'selected' : ''}} value="uber_eats">Uber
+                                                Eats
+                                            </option>
+                                            <option {{$order->app == 'pick_me' ? 'selected' : ''}} value="pick_me">Pick Me
+                                            </option>
                                         </select>
                                     </div>
                                     <div class="border-top border-bottom mt-2 py-2 col-lg-12">
 
                                         <div class="row">
                                             <div class="col-lg-6 ">
-                                                <label for="print_yes" class="label btn btn-secondary p-2" style="cursor:pointer">Print
+                                                <label for="print_yes" class="label btn btn-secondary p-2"
+                                                    style="cursor:pointer">Print
                                                     Receipt</label>
-                                                <input type="radio" name="print_receipt" id="print_yes" value="1"
-                                                    checked style="cursor:pointer">
+                                                <input type="radio" name="print_receipt" id="print_yes" value="1" checked
+                                                    style="cursor:pointer">
                                             </div>
                                             <div class="col-lg-6 ">
-                                                <label for="print_no" class="label btn btn-secondary p-2" style="cursor:pointer">No
+                                                <label for="print_no" class="label btn btn-secondary p-2"
+                                                    style="cursor:pointer">No
                                                     Print</label>
                                                 <input type="radio" name="print_receipt" id="print_no" value="0"
                                                     style="cursor:pointer">
                                             </div>
                                         </div>
-                                        {{-- <input type="checkbox" name="print_receipt" id="print_receipt" style="cursor:pointer">
-                                        <label for="print_receipt" class=" label"  style="cursor:pointer;text-decoration:underline"><i class="fa-regular fa-file"></i>&nbsp;&nbsp;Print Receipt?</label> --}}
+                                        {{-- <input type="checkbox" name="print_receipt" id="print_receipt"
+                                            style="cursor:pointer">
+                                        <label for="print_receipt" class=" label"
+                                            style="cursor:pointer;text-decoration:underline"><i
+                                                class="fa-regular fa-file"></i>&nbsp;&nbsp;Print Receipt?</label> --}}
                                     </div>
                                 </div>
 
@@ -234,8 +262,7 @@
                                         class="fa-regular fa-paper-plane"></i> Proceed</button>
                             </div>
                             <div>
-                                <form id="orderDetailsForm" action="{{ route('orders.update', $order->id) }}"
-                                    method="POST">
+                                <form id="orderDetailsForm" action="{{ route('orders.update', $order->id) }}" method="POST">
                                     @method('PUT')
                                     @csrf
                                 </form>
@@ -252,6 +279,59 @@
         const orderFromServer = @json($order);
         const orderDetailsFromServer = @json($order->details ?? []);
     </script>
+
+    <script>
+        $(document).ready(function () {
+
+            const $searchInput = $('#itemSearch');
+            const $searchResults = $('#searchResults');
+            const $resultsBox = $('#searchResultsContainer');
+            const $items = $('.item-card');
+
+            function resetSearch() {
+                $searchInput.val('');
+                $resultsBox.empty();
+                $searchResults.addClass('d-none');
+
+                $('#myTab, #myTabContent').removeClass('d-none');
+            }
+
+            $searchInput.on('keyup', function () {
+                let query = $(this).val().toLowerCase().trim();
+
+                $resultsBox.empty();
+                $searchResults.addClass('d-none');
+
+                if (query.length < 2) {
+                    $('#myTab, #myTabContent').removeClass('d-none');
+                    return;
+                }
+
+                let matches = 0;
+
+                $items.each(function () {
+                    let name = $(this).data('name');
+
+                    if (name.includes(query)) {
+                        matches++;
+
+                        let $clone = $(this).closest('.col-lg-3').clone();
+                        $resultsBox.append($clone);
+                    }
+                });
+
+                if (matches > 0) {
+                    $('#myTab, #myTabContent').addClass('d-none');
+                    $searchResults.removeClass('d-none');
+                }
+            });
+
+            $('#resetSearch').on('click', resetSearch);
+            $('#closeSearchResults').on('click', resetSearch);
+
+        });
+    </script>
+
     <script>
         orderItems = {}; // reset just in case
 
@@ -313,21 +393,21 @@
                 let item = orderItems[key];
                 $('.order-details-table tbody').append(
                     `
-                    <tr class="order-details-item">
-                        <td class="small">${i}</td>
-                        <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
+                                                <tr class="order-details-item">
+                                                    <td class="small">${i}</td>
+                                                    <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
                     (item.discount > 0 ? `<s>Rs. ${item.originalCost}</s>` : '') + ` </td>
-                        <td>
+                                                    <td>
 
-                            Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
-                            <br> 
-                            Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
+                                                        Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
+                                                        <br> 
+                                                        Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
 
-                        </td>
-                        <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
-                            DELETE</span></td>
-                    </tr>
-                `);
+                                                    </td>
+                                                    <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
+                                                        DELETE</span></td>
+                                                </tr>
+                                            `);
                 i++;
             });
 
@@ -346,15 +426,18 @@
         }
 
         // Click event for adding items
-        $('.item-card').click(function() {
+        $(document).on('click', '.item-card', function () {
+
             $('.order-summary-container').removeClass('d-none');
-            let itemName = $(this).data('name');
-            let itemCost = $(this).data('cost');
-            let itemId = $(this).data('item-id');
+
+            let itemName = $(this).attr('data-name');
+            let itemCost = parseFloat($(this).attr('data-cost'));
+            let itemId = $(this).attr('data-item-id');
+
+            if (!itemId) return;
 
             if (orderItems[itemId]) {
-                orderItems[itemId].qty++; // Increase quantity
-                renderOrderTable();
+                orderItems[itemId].qty++;
             } else {
                 orderItems[itemId] = {
                     id: itemId,
@@ -362,16 +445,14 @@
                     cost: itemCost,
                     originalCost: itemCost,
                     qty: 1,
-                }; // Add item to array
-
+                };
             }
 
-
-            renderOrderTable(); // Re-render table
+            renderOrderTable();
         });
 
         // order summary discount buttons handler
-        $('.btn-discount').click(function() {
+        $('.btn-discount').click(function () {
             discount_percentage = $(this).data('discount-value');
             discount = Math.round((subtotal * discount_percentage) * 100) / 100;
             $('.discount-input').val(discount);
@@ -391,7 +472,7 @@
         }
 
         // individual discount handler
-        $(document).on('change', '.item-discount-input', function() {
+        $(document).on('change', '.item-discount-input', function () {
             let discount = parseFloat($(this).val()) || 0; // Ensure it's a valid number
             let targetId = $(this).data('item-id');
 
@@ -404,7 +485,7 @@
         });
 
         // qty input handler
-        $(document).on('change', '.item-qty-input', function() {
+        $(document).on('change', '.item-qty-input', function () {
             let newQty = parseFloat($(this).val()) || 0; // Ensure it's a valid number
             let targetId = $(this).data('item-id');
 
@@ -415,7 +496,7 @@
         });
 
         // changing individual item price
-        $(document).on('change', '.item-price-input', function() {
+        $(document).on('change', '.item-price-input', function () {
             let newPrice = parseFloat($(this).val()) || 0; // Ensure it's a valid number
             let targetId = $(this).data('item-id');
 
@@ -428,7 +509,7 @@
 
         // Function to attach delete event
         function attachDeleteEvent() {
-            $('.item-delete').off('click').on('click', function() {
+            $('.item-delete').off('click').on('click', function () {
                 let itemId = $(this).data('item-id');
                 delete orderItems[itemId]; // Remove item from array
 
@@ -441,7 +522,7 @@
         }
 
         // AJAX REQUEST
-        $('#btn_generate_receipt').on('click', function(e) {
+        $('#btn_generate_receipt').on('click', function (e) {
             e.preventDefault();
 
             let note = $('#order_note').val();
@@ -465,30 +546,30 @@
             }
             $('#orderForm').empty();
             $("#orderDetailsForm").append(`
-                <input type="hidden" name="subtotal" value="${subtotal}">
-                <input type="hidden" name="tax" value="${tax}">
-                <input type="hidden" name="payable" value="${payable}">
-                <input type="hidden" name="discount" value="${discount}">
-                <input type="hidden" name="discountPercentage" value="${discountPercentage}">
-                <input type="hidden" name="note" value="${note}">
-                <input type="hidden" name="order_type" value="${order_type}">
-                <input type="hidden" name="table_no" value="${table_no}">
-                <input type="hidden" name="employee_id" value="${employee_id}">
-                <input type="hidden" name="payment_method" value="${payment_method}">
-                <input type="hidden" name="print_receipt" value="${print_receipt}">
-                <input type="hidden" name="delivery_app" value="${delivery_app}">
-            `);
+                                            <input type="hidden" name="subtotal" value="${subtotal}">
+                                            <input type="hidden" name="tax" value="${tax}">
+                                            <input type="hidden" name="payable" value="${payable}">
+                                            <input type="hidden" name="discount" value="${discount}">
+                                            <input type="hidden" name="discountPercentage" value="${discountPercentage}">
+                                            <input type="hidden" name="note" value="${note}">
+                                            <input type="hidden" name="order_type" value="${order_type}">
+                                            <input type="hidden" name="table_no" value="${table_no}">
+                                            <input type="hidden" name="employee_id" value="${employee_id}">
+                                            <input type="hidden" name="payment_method" value="${payment_method}">
+                                            <input type="hidden" name="print_receipt" value="${print_receipt}">
+                                            <input type="hidden" name="delivery_app" value="${delivery_app}">
+                                        `);
 
             // Loop through orderItems object
             Object.keys(orderItems).forEach((key, index) => {
                 const item = orderItems[key];
                 $('#orderDetailsForm').append(`
-                    <input type="hidden" name="items[${index}][id]" value="${item.id}">
-                    <input type="hidden" name="items[${index}][name]" value="${item.name}">
-                    <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
-                    <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
-                    <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
-                `);
+                                                <input type="hidden" name="items[${index}][id]" value="${item.id}">
+                                                <input type="hidden" name="items[${index}][name]" value="${item.name}">
+                                                <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
+                                                <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
+                                                <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
+                                            `);
             });
             $('#orderDetailsForm').submit();
 

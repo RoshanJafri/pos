@@ -100,7 +100,7 @@ class OrderController extends Controller
                 'originalCost' => $item['originalCost'],
             ]);
         }
-        for ($i = 0; $i < count($request->receipt_count); $i++) {
+        for ($i = 0; $i < $request->receipt_count; $i++) {
             $this->printKOT($order->id, $order->created_at, $order->employee->name, $request->items, [], $order->table_no);
         }
         return redirect()->route('dashboard')->with('success', 'Order updated successfully!');

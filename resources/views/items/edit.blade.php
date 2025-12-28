@@ -38,6 +38,12 @@
                                 @endforeach
                             </select>
                         </div>
+                        
+                        <!-- Portion Multiplier -->
+                        <div class="mb-3">
+                            <label for="portion" class="form-label">Portion Multiplier</label>
+                            <input type="number" name="portion_multiplier" value="{{ $item->portion_multiplier }}" class="form-control" placeholder="1">
+                        </div>
             
                         <!-- Price -->
                         <div class="mb-3">

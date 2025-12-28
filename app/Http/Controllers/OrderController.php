@@ -281,10 +281,14 @@ class OrderController extends Controller
 
 
         // ✅ SUBTRACT PORTIONS STOCK
+
         foreach ($order->details as $detail) {
 
-            $portionId = $detail->item->portion_id;
-            $qtyUsed = $detail->quantity;
+            $item = $detail->item;
+
+            $portionId = $item->portion_id;
+            $multiplier = $item->portion_multiplier ?? 1;
+            $qtyUsed = $detail->quantity * $multiplier;
 
             if ($portionId) {
                 DB::table('portions')

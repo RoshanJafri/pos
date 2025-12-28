@@ -27,6 +27,24 @@
                             </select>
                         </div>
             
+                        <!-- Portion Type -->
+                        <div class="mb-3">
+                            <label for="portion" class="form-label">Portion Category</label>
+                            <select class="form-control" id="portion" name="portion_id" required>
+                                <option value="" selected>Select a category</option>
+                                @foreach ($portions as $portion)
+                                    <option value="{{$portion->id}}">{{ucfirst($portion->name)}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <!-- Portion Multiplier -->
+                        <div class="mb-3">
+                            <label for="portion" class="form-label">Portion Multiplier</label>
+                            <small>Type only number</small>
+                            <input type="number" name="portion_multiplier"  value="" class="form-control" placeholder="1">
+                        </div>
+
                         <!-- Price -->
                         <div class="mb-3">
                             <label for="price" class="form-label">Price (Rs)</label>

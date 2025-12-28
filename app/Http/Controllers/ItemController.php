@@ -32,7 +32,7 @@ class ItemController extends Controller
     public function create()
     {
         $categories = SubCategory::orderBy('name', 'asc')->get();
-        return view('items.create', ['categories' => $categories]);
+        return view('items.create', ['portions' => Portion::orderBy('name', 'desc')->get(), 'categories' => $categories]);
     }
 
     /**
@@ -44,6 +44,8 @@ class ItemController extends Controller
         $item->name = $request->name;
         $item->subcategory_id = $request->subcategory_id;
         $item->cost = $request->cost;
+        $item->portion_id = $request->portion_id;
+        $item->portion_multiplier = $request->portion_multiplier;
         $item->save();
         return redirect(route('items.index'));
     }
@@ -75,6 +77,7 @@ class ItemController extends Controller
         $item->subcategory_id = $request->subcategory_id;
         $item->portion_id = $request->portion_id;
         $item->cost = $request->cost;
+        $item->portion_multiplier = $request->portion_multiplier;
         $item->save();
         return redirect(route('items.index'));
     }

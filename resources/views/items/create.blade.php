@@ -30,7 +30,7 @@
                         <!-- Portion Type -->
                         <div class="mb-3">
                             <label for="portion" class="form-label">Portion Category</label>
-                            <select class="form-control" id="portion" name="portion_id" required>
+                            <select class="form-control" id="portion" name="portion_id" >
                                 <option value="" selected>Select a category</option>
                                 @foreach ($portions as $portion)
                                     <option value="{{$portion->id}}">{{ucfirst($portion->name)}}</option>

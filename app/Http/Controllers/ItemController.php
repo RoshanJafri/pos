@@ -45,7 +45,11 @@ class ItemController extends Controller
         $item->subcategory_id = $request->subcategory_id;
         $item->cost = $request->cost;
         $item->portion_id = $request->portion_id;
-        $item->portion_multiplier = $request->portion_multiplier;
+        if($request->portion_multiplier){
+            $item->portion_multiplier = $request->portion_multiplier;
+        }else{
+            $item->portion_multiplier = 0;
+        }
         $item->save();
         return redirect(route('items.index'));
     }

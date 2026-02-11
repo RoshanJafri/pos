@@ -1,1 +1,2 @@
 *.sqlite*
+!data-1.sqlite

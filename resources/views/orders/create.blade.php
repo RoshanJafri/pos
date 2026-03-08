@@ -326,21 +326,21 @@
                 let item = orderItems[key];
                 $('.order-details-table tbody').append(
                     `<tr class="order-details-item">
-                        <td class="small">${i}</td>
-                        <input type="hidden" name="name" value="${item.name}">
-                        <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
-(item.discount > 0 ? `<s>Rs. ${item.originalCost}</s>` : '') + ` </td>
-                        <td>
+                            <td class="small">${i}</td>
+                            <input type="hidden" name="name" value="${item.name}">
+                            <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
+                    (item.discount > 0 ? `<s>Rs. ${item.originalCost}</s>` : '') + ` </td>
+                            <td>
 
-                            Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
-                            <br> 
-                            Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
+                                Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
+                                <br> 
+                                Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
 
-                        </td>
-                        <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
-                            DELETE</span></td>
-                    </tr>
-                `);
+                            </td>
+                            <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
+                                DELETE</span></td>
+                        </tr>
+                    `);
                 i++;
             });
 
@@ -359,28 +359,28 @@
         }
 
         // Click event for adding items
-        $(document).on('click', '.item-card', function () {
-            $('.order-summary-container').removeClass('d-none');
-            let itemName = $(this).data('name');
-            let itemCost = $(this).data('cost');
-            let itemId = $(this).data('item-id');
+        $(document).off('click', '.item-card')
+            .on('click', '.item-card', function () {
+                $('.order-summary-container').removeClass('d-none');
+                let itemName = $(this).data('name');
+                let itemCost = $(this).data('cost');
+                let itemId = $(this).data('item-id');
 
-            if (orderItems[itemId]) {
-                orderItems[itemId].qty++; // Increase quantity
-                renderOrderTable();
-            } else {
-                orderItems[itemId] = {
-                    id: itemId,
-                    name: itemName,
-                    cost: itemCost,
-                    originalCost: itemCost,
-                    qty: 1,
-                }; // Add item to array
+                if (orderItems[itemId]) {
+                    orderItems[itemId].qty++; // Increase quantity
+                } else {
+                    orderItems[itemId] = {
+                        id: itemId,
+                        name: itemName,
+                        cost: itemCost,
+                        originalCost: itemCost,
+                        qty: 1,
+                    }; // Add item to array
 
-            }
+                }
 
-            renderOrderTable(); // Re-render table
-        });
+                renderOrderTable(); // Re-render table
+            });
 
         // order summary discount buttons handler
         $('.btn-discount').click(function () {
@@ -454,7 +454,7 @@
         }
 
         // GENERATE RECEIPT
-        $('#btn_generate_receipt').on('click', function (e) {
+        $('#btn_generate_receipt').one('click', function (e) {
             e.preventDefault();
             let receipt_count = $('#receipt_count').val();
             let note = $('#order_note').val();
@@ -477,30 +477,30 @@
             }
             $('#orderForm').empty();
             $("#orderDetailsForm").append(`
-                    <input type="hidden" name="subtotal" value="${subtotal}">
-                    <input type="hidden" name="tax" value="${tax}">
-                    <input type="hidden" name="payable" value="${payable}">
-                    <input type="hidden" name="discount" value="${discount}">
-                    <input type="hidden" name="discountPercentage" value="${discountPercentage}">
-                    <input type="hidden" name="note" value="${note}">
-                    <input type="hidden" name="order_type" value="${order_type}">
-                    <input type="hidden" name="table_no" value="${table_no}">
-                    <input type="hidden" name="employee_id" value="${employee_id}">
-                    <input type="hidden" name="payment_method" value="${payment_method}">
-                    <input type="hidden" name="delivery_app" value="${delivery_app}">
-                    <input type="hidden" name="receipt_count" value="${receipt_count}">
-                `);
+                        <input type="hidden" name="subtotal" value="${subtotal}">
+                        <input type="hidden" name="tax" value="${tax}">
+                        <input type="hidden" name="payable" value="${payable}">
+                        <input type="hidden" name="discount" value="${discount}">
+                        <input type="hidden" name="discountPercentage" value="${discountPercentage}">
+                        <input type="hidden" name="note" value="${note}">
+                        <input type="hidden" name="order_type" value="${order_type}">
+                        <input type="hidden" name="table_no" value="${table_no}">
+                        <input type="hidden" name="employee_id" value="${employee_id}">
+                        <input type="hidden" name="payment_method" value="${payment_method}">
+                        <input type="hidden" name="delivery_app" value="${delivery_app}">
+                        <input type="hidden" name="receipt_count" value="${receipt_count}">
+                    `);
 
             // Loop through orderItems object
             Object.keys(orderItems).forEach((key, index) => {
                 const item = orderItems[key];
                 $('#orderDetailsForm').append(`
-                        <input type="hidden" name="items[${index}][id]" value="${item.id}">
-                        <input type="hidden" name="items[${index}][name]" value="${item.name}">
-                        <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
-                        <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
-                        <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
-                    `);
+                            <input type="hidden" name="items[${index}][id]" value="${item.id}">
+                            <input type="hidden" name="items[${index}][name]" value="${item.name}">
+                            <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
+                            <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
+                            <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
+                        `);
             });
             $('#orderDetailsForm').submit();
 

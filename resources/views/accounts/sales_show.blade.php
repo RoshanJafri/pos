@@ -3,7 +3,7 @@
 @push('content')
 <div class="container">
     {{-- TOTAL SALE --}}
-    <div class="row mb-4">
+    <div class="row mb-4 no-print">
         <div class="col-lg-12">
             <a href="{{ url('accounts') }}" class="btn btn-primary mb-3">GO BACK</a>
             <div class="card border-success">
@@ -23,7 +23,7 @@
     </div>
 
     {{-- FILTER FORM --}}
-    <div class="card mb-4">
+    <div class="card mb-4 no-print">
         <div class="card-header">
             <strong>Filter Orders</strong>
         </div>
@@ -146,7 +146,7 @@
                         </td>
                         <td>{{ $order->created_at->format('h:i A jS M Y') }}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-secondary"
+                            <button class="btn btn-sm btn-outline-secondary no-print"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#details-{{ $order->id }}">
                                 Details

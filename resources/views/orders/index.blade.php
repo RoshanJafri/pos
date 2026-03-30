@@ -47,17 +47,17 @@
                                     <th>Tax</th>
                                     <th>Discount</th>
                                     <th>Payable</th>
-                                    <th>Order Type</th>
-                                    <th>Created</th>
+                                    <th>Type</th>
+                                    <th>Info</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($orders as $order)
                                     <tr>
-                                        <td>{{ $order->id }}</td>
-                                        <td>{{ $order->employee ? $order->employee->name : 'employee deleted' }}</td>
-                                        <td>{{ $order->table_no }}</td>
+                                        <td>{{ $order->id }} </td>
+                                        <td>{{ $order->employee ? $order->employee->name : 'employee deleted' }} </td>
+                                        <td>{{ $order->table_no }} </td>
                                         <td> Rs. {{ $order->subtotal }}</td>
                                         <td> Rs. {{ $order->tax }}</td>
                                         <td> Rs. {{ $order->discount ? $order->discount : '0' }}</td>
@@ -65,7 +65,7 @@
                                                 class="text-primary">{{ $order->payment_method }}</small></td>
                                         <td>{{ $order->order_type }} <br> <small class="text-success">
                                                 {{$order->app}}</small></td>
-                                        <td>{{ date('h:i A jS \o\f M, Y', strtotime($order->created_at)) }}</td>
+                                        <td> {{ date('h:i A jS \o\f M, Y', strtotime($order->created_at)) }}<br><span class="text-muted">note: {{ $order->note }}</span>  </td>
 
                                         {{-- Action buttons for edit and delete --}}
                                         <td><a href="{{ route('orders.edit', $order->id) }}" class="btn border">edit</a>&nbsp;

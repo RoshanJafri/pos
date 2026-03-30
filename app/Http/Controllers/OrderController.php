@@ -88,6 +88,62 @@ class OrderController extends Controller
         $order->order_type = $request->order_type;
         $order->app = $request->delivery_app;
         $order->status = 0;
+
+        if ($request->created_at) {
+
+            $date = Carbon::parse($request->created_at);
+
+            // ❌ Block Mondays
+            if ($date->isMonday()) {
+                return back()->withErrors([
+                    'closed' => 'The restaurant is closed on Mondays. No orders can be placed.'
+                ])->withInput();
+            }
+
+            // Define shifts
+            $lunchStart = $date->copy()->setTime(11, 0);
+            $lunchEnd = $date->copy()->setTime(15, 0)->subMinutes(90); // 1.5h margin → 13:30
+
+            $dinnerStart = $date->copy()->setTime(19, 0);
+            $dinnerEnd = $date->copy()->setTime(23, 0)->subMinutes(90); // → 21:30
+
+            // Randomly pick lunch or dinner
+            $shift = rand(0, 1) ? 'lunch' : 'dinner';
+
+            if ($shift === 'lunch') {
+                $start = $lunchStart;
+                $end = $lunchEnd;
+            } else {
+                $start = $dinnerStart;
+                $end = $dinnerEnd;
+            }
+
+            // Generate random created_at time within shift
+            $createdAt = Carbon::createFromTimestamp(
+                rand($start->timestamp, $end->timestamp)
+            );
+
+            // Eating duration: 40 to 90 minutes
+            $durationMinutes = rand(40, 90);
+
+            $updatedAt = $createdAt->copy()->addMinutes($durationMinutes);
+
+            // Ensure updated_at does not exceed actual closing time
+            $closingTime = ($shift === 'lunch')
+                ? $date->copy()->setTime(15, 0)
+                : $date->copy()->setTime(23, 0);
+
+            if ($updatedAt->gt($closingTime)) {
+                $updatedAt = $closingTime->copy()->subMinutes(rand(5, 15)); // keep it natural
+            }
+
+            $order->created_at = $createdAt;
+            $order->updated_at = $updatedAt;
+            $order->payment_method = 'cash'; 
+            $order->status = 1; 
+        }
+
+
         $order->save();
 
         // Save order details
@@ -100,9 +156,15 @@ class OrderController extends Controller
                 'originalCost' => $item['originalCost'],
             ]);
         }
-        for ($i = 0; $i < $request->receipt_count; $i++) {
-            $this->printKOT($order->id, $order->created_at, $order->employee->name, $request->items, [], $order->table_no);
+
+        // if order created without past date, print receipt
+        if (!$request->created_at) {
+            for ($i = 0; $i < $request->receipt_count; $i++) {
+                $this->printKOT($order->id, $order->created_at, $order->employee->name, $request->items, [], $order->table_no);
+            }
         }
+
+
         return redirect()->route('dashboard')->with('success', 'Order updated successfully!');
     }
 

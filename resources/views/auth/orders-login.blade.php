@@ -5,10 +5,13 @@
         <div class="row justify-content-center">
             <div class="col-md-4">
                 <div class="card shadow">
-                    <div class="card-header">Manager Access</div>
+                    <div class="card-header">Orders Access</div>
                     <div class="card-body">
                         <form method="POST">
                             @csrf
+                            @error('password')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
                             <input type="password" name="password" class="form-control" autocomplete="off" autocorrect="off"
                                 autocapitalize="off" spellcheck="false">
 

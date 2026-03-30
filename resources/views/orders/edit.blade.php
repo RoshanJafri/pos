@@ -248,7 +248,16 @@
                                     </div>
                                 </div>
 
-                                <hr>
+                                {{-- <hr>
+                                @if (session('sales_authenticated') || session('orders_authenticated'))
+                                    <label for="created_at" class="label">Order Date &amp; Time</label>
+                                    <br>
+                                    <small class="text-primary">Select date this order was made at</small>
+                                    <input type="date" name="created_at" id="created_at" class="form-control">
+                                @else
+                                    <input type="hidden" name="created_at" id="created_at">
+                                @endif
+                                <hr> --}}
 
                                 <div class="row">
                                     <div class="col-lg-12">
@@ -393,21 +402,21 @@
                 let item = orderItems[key];
                 $('.order-details-table tbody').append(
                     `
-                                                <tr class="order-details-item">
-                                                    <td class="small">${i}</td>
-                                                    <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
+                                                    <tr class="order-details-item">
+                                                        <td class="small">${i}</td>
+                                                        <td>${item.name} <br> Rs. <input class="border item-price-input" style="max-width:80px" type="number"  value="${item.cost}" data-item-id="${item.id}"> <br> ` +
                     (item.discount > 0 ? `<s>Rs. ${item.originalCost}</s>` : '') + ` </td>
-                                                    <td>
+                                                        <td>
 
-                                                        Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
-                                                        <br> 
-                                                        Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
+                                                            Qty. <input class="border item-qty-input" style="max-width:65px" type="number"  value="${item.qty}" data-item-id="${item.id}"> 
+                                                            <br> 
+                                                            Discount % <input class="border item-discount-input" style="max-width:65px" type="number"  value="${item.discount}" data-item-id="${item.id}" placeholder="0">
 
-                                                    </td>
-                                                    <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
-                                                        DELETE</span></td>
-                                                </tr>
-                                            `);
+                                                        </td>
+                                                        <td><span class="btn-delete item-delete text-danger" data-item-id="${item.id}">
+                                                            DELETE</span></td>
+                                                    </tr>
+                                                `);
                 i++;
             });
 
@@ -532,6 +541,7 @@
             let payment_method = $('select[name="payment_method"]').val();
             let print_receipt = $('input[name="print_receipt"]:checked').val();
             let delivery_app = $('select[name="delivery_app"]').val();
+            let created_at = $('#created_at').val();
 
             let orderSummary = {
                 items: orderItems,
@@ -541,35 +551,37 @@
                 discount: discount,
                 discountPercentage: discountPercentage,
                 note: note,
+                created_at: created_at,
                 order_type: order_type,
                 delivery_app: delivery_app,
             }
             $('#orderForm').empty();
             $("#orderDetailsForm").append(`
-                                            <input type="hidden" name="subtotal" value="${subtotal}">
-                                            <input type="hidden" name="tax" value="${tax}">
-                                            <input type="hidden" name="payable" value="${payable}">
-                                            <input type="hidden" name="discount" value="${discount}">
-                                            <input type="hidden" name="discountPercentage" value="${discountPercentage}">
-                                            <input type="hidden" name="note" value="${note}">
-                                            <input type="hidden" name="order_type" value="${order_type}">
-                                            <input type="hidden" name="table_no" value="${table_no}">
-                                            <input type="hidden" name="employee_id" value="${employee_id}">
-                                            <input type="hidden" name="payment_method" value="${payment_method}">
-                                            <input type="hidden" name="print_receipt" value="${print_receipt}">
-                                            <input type="hidden" name="delivery_app" value="${delivery_app}">
-                                        `);
+                                                <input type="hidden" name="subtotal" value="${subtotal}">
+                                                <input type="hidden" name="tax" value="${tax}">
+                                                <input type="hidden" name="payable" value="${payable}">
+                                                <input type="hidden" name="discount" value="${discount}">
+                                                <input type="hidden" name="discountPercentage" value="${discountPercentage}">
+                                                <input type="hidden" name="note" value="${note}">
+                                                <input type="hidden" name="order_type" value="${order_type}">
+                                                <input type="hidden" name="table_no" value="${table_no}">
+                                                <input type="hidden" name="employee_id" value="${employee_id}">
+                                                <input type="hidden" name="payment_method" value="${payment_method}">
+                                                <input type="hidden" name="print_receipt" value="${print_receipt}">
+                                                <input type="hidden" name="delivery_app" value="${delivery_app}">
+                                        <input type="hidden" name="created_at" value="${created_at}">
+                                            `);
 
             // Loop through orderItems object
             Object.keys(orderItems).forEach((key, index) => {
                 const item = orderItems[key];
                 $('#orderDetailsForm').append(`
-                                                <input type="hidden" name="items[${index}][id]" value="${item.id}">
-                                                <input type="hidden" name="items[${index}][name]" value="${item.name}">
-                                                <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
-                                                <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
-                                                <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
-                                            `);
+                                                    <input type="hidden" name="items[${index}][id]" value="${item.id}">
+                                                    <input type="hidden" name="items[${index}][name]" value="${item.name}">
+                                                    <input type="hidden" name="items[${index}][cost]" value="${item.cost}">
+                                                    <input type="hidden" name="items[${index}][originalCost]" value="${item.originalCost}">
+                                                    <input type="hidden" name="items[${index}][qty]" value="${item.qty}">
+                                                `);
             });
             $('#orderDetailsForm').submit();
 

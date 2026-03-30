@@ -1,2 +1,10 @@
-things to do
-1. make orders searchable by id, download excel button
+allow admin to create orders with no printing functionality. 
+Order is instantly stored at a random time on the selected date (between work hours. Leave 2 hour closing margin)
+Order is also closed at a random time increment of 40 minutes to 2 hours (make sure before closing time)
+PDF bank statement like report printing for selected date ranges.
+
+
+
+considerations:
+Remind not to have orders on holidays
+payment method if order has custom created_at is set to cash.
